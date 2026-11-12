@@ -3,6 +3,7 @@
 - [architecture.md](architecture.md): architettura attuale e architettura di arrivo.
 - [esercizi.md](esercizi.md): catalogo degli esercizi e corrispondenza con i parametri del modello.
 - [plans/0001-audio-ed-esercizi.md](plans/0001-audio-ed-esercizi.md): piano (completato) per ascolto, esercizi su tutta la tastiera e tablatura.
+- [plans/0002-suite-pratica.md](plans/0002-suite-pratica.md): piano (approvato, da avviare) per la suite Scale, Arpeggi, Accordi, Progressioni e l'integrazione nel volume Appunti di Pratica.
 
 ## ADR (Architecture Decision Records)
 
@@ -17,6 +18,7 @@
 | [0007](ADR-0007-ui-pratica-mobile.md) | UI della pratica: pannello, tastiera intera, tablatura, trasporto | Accettato |
 | [0008](ADR-0008-assegnazione-posizioni.md) | Assegnazione delle posizioni: Viterbi con vincoli e profili | Accettato |
 | [0009](ADR-0009-tablatura.md) | Tablatura dell'esercizio in SVG generata dagli eventi | Accettato |
+| [0010](ADR-0010-suite-di-strumenti.md) | Da app per le scale a suite di strumenti di pratica | Accettato |
 
 Formato: contesto, decisione, alternative scartate, conseguenze.
 Un ADR accettato non si modifica: se la decisione cambia se ne scrive uno nuovo che lo sostituisce.
