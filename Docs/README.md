@@ -2,8 +2,9 @@
 
 - [architecture.md](architecture.md): architettura attuale e architettura di arrivo.
 - [esercizi.md](esercizi.md): catalogo degli esercizi e corrispondenza con i parametri del modello.
+- [deep-link.md](deep-link.md): schema dei link agli esercizi (interfaccia pubblica, usata dal volume).
 - [plans/0001-audio-ed-esercizi.md](plans/0001-audio-ed-esercizi.md): piano (completato) per ascolto, esercizi su tutta la tastiera e tablatura.
-- [plans/0002-suite-pratica.md](plans/0002-suite-pratica.md): piano (approvato, da avviare) per la suite Scale, Arpeggi, Accordi, Progressioni e l'integrazione nel volume Appunti di Pratica.
+- [plans/0002-suite-pratica.md](plans/0002-suite-pratica.md): piano (approvato; fase 0 completata) per la suite Scale, Arpeggi, Accordi, Progressioni e l'integrazione nel volume Appunti di Pratica.
 
 ## ADR (Architecture Decision Records)
 

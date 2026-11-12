@@ -27,7 +27,7 @@ nessuna dipendenza.
 
 ## Fasi
 
-### 0. Suite e deep link (refactor, nessun cambio funzionale)
+### 0. Suite e deep link (refactor, nessun cambio funzionale) — ✅ completata il 2026-11-12
 
 - `practice.js` → `transport.js` + pannello Scale; `app.js` → `scale.html` + script dello strumento.
 - `index.html`: pagina di scelta; i vecchi URL e lo stato salvato continuano a funzionare.
@@ -39,6 +39,27 @@ nessuna dipendenza.
   pallini della tastiera, tablatura e nota in riproduzione.
 - Accettazione: test esistenti verdi; nuovi test per `link.js` e per la migrazione; prova manuale
   da `file://` e da server statico.
+
+Esito (2026-11-12):
+
+- `js/transport.js` (trasporto comune) separato da `practice.js`, che resta il pannello dello
+  strumento Scale.
+- `index.html` è la pagina di scelta; lo strumento è `scale.html`. L'indirizzo principale apre la
+  scelta, a un clic dallo strumento; non esistevano deep link da preservare.
+- `js/link.js` e [deep-link.md](../deep-link.md): schema `v=1`, pulsante «Copia link
+  dell'esercizio», applicazione del link all'apertura e su `hashchange`.
+- `js/events.js`: `notesOf`/`midisOf`; scheduler, tastiera e tablatura (SVG e ASCII) gestiscono
+  già note simultanee.
+- Tema «Appunti» (gray/red/blue/amber di Radix come nel volume), `js/theme.js` per il parametro
+  `theme` (per scheda, `sessionStorage`), testate con ritorno a strumenti e volume. Contrasti
+  misurati: testo bianco su tonica 5,2:1 (chiaro, red-11) e 5,6:1 (scuro); nota in riproduzione
+  7,2:1; testo secondario ≥ 5,9:1.
+- Chiavi `localStorage`: **non migrate**. Le chiavi storiche restano allo strumento Scale e gli
+  strumenti nuovi useranno `gsp:<strumento>:v1`: la separazione per strumento è ottenuta senza
+  rischiare le impostazioni salvate (vedi la nota nell'ADR 0010, punto 6).
+- Test: 43 (8 nuovi in `tests/link.test.js`). Verifica nel browser (server locale, 375 px e
+  1280 px, chiaro e scuro): deep link applicato, riproduzione con evidenziazione su tastiera,
+  tablatura e gradi, ascolto rapido, «Copia link», nessun errore in console.
 
 ### 1. Integrazione nel volume (solo Scale)
 

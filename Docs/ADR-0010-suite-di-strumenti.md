@@ -36,6 +36,9 @@ Accordi e Progressioni. GSP copre le scale; gran parte del codice è già generi
 6. **Persistenza per strumento**: chiavi `gsp:<strumento>:v1`. Le chiavi attuali
    (`interval-master:v1`, `gsp:practice:v1`) si migrano una volta alla prima apertura.
    Motivo: tutte le pagine della suite condividono l'origine GitHub Pages e quindi `localStorage`.
+   *Nota di attuazione (2026-11-12, fase 0)*: la migrazione non è stata fatta. Le chiavi storiche
+   sono già solo dello strumento Scale e le Conseguenze di questo stesso ADR chiedono di non
+   rinominarle; la separazione per strumento vale per gli strumenti nuovi (`gsp:<strumento>:v1`).
 
 7. **Tema «Appunti»**, unico tema di GSP anche quando è usato da solo (opzione D1 dell'analisi 019
    di appunti-pratica).

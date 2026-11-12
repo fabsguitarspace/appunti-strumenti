@@ -1,24 +1,26 @@
 /* Strumenti per la pratica (ex Guitar Scale Practice) — mobile-first.
-   Breakpoint: 640px (tablet), 1024px (impostazioni in colonna), 1280px (anche cronologia). */
+   Breakpoint: 640px (tablet), 1024px (impostazioni in colonna), 1280px (anche cronologia).
+   Tema «Appunti» (ADR 0010, punto 7): neutri e accento rosso del volume Appunti di Pratica
+   (tema Shibuya, scale di colore Radix: gray, red, blue, amber). */
 
 :root {
-  --bg: #f6f4ef;
+  --bg: #fcfcfc;           /* gray-1 */
   --surface: #ffffff;
-  --surface-2: #efece5;
-  --text: #1d1f24;
-  --muted: #646a75;
-  --line: #d9d4ca;
-  --accent: #e8821e;       /* tonica */
+  --surface-2: #f0f0f0;    /* gray-3 */
+  --text: #202020;         /* gray-12 */
+  --muted: #646464;        /* gray-11 */
+  --line: #e0e0e0;         /* gray-5 */
+  --accent: #ce2c31;       /* tonica: red-11 (red-9/10 non reggono il testo bianco: AA 5.2:1) */
   --accent-ink: #ffffff;
-  --accent-soft: #fbe6cf;
-  --note: #3f7fd8;         /* altre note */
+  --accent-soft: #feebec;  /* red-3 */
+  --note: #0d74ce;         /* altre note: blue-11 */
   --note-ink: #ffffff;
-  --primary: #1d1f24;
+  --primary: #202020;
   --primary-ink: #ffffff;
-  --danger: #c4372b;
-  --fb-line: #9a958b;
-  --fb-nut: #3a3d44;
-  --fb-inlay: #e3ded3;
+  --danger: #ab6400;       /* amber-11: distinto dalla tonica */
+  --fb-line: #8d8d8d;      /* gray-9 */
+  --fb-nut: #2a2a2a;
+  --fb-inlay: #e8e8e8;     /* gray-4 */
   --shadow: 0 1px 2px rgb(0 0 0 / .05), 0 4px 16px rgb(0 0 0 / .05);
   --radius: 14px;
   --gutter: 16px;
@@ -31,31 +33,31 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #16181d;
-    --surface: #1f2228;
-    --surface-2: #2a2e36;
-    --text: #e9e7e2;
-    --muted: #9aa0ab;
-    --line: #353a43;
-    --accent: #f0923a;
-    --accent-ink: #1a1206;
-    --accent-soft: #3d2a16;
-    --note: #5b98ec;
-    --note-ink: #0b1526;
-    --primary: #e9e7e2;
-    --primary-ink: #16181d;
-    --danger: #ff7a6b;
-    --fb-line: #6a707b;
-    --fb-nut: #c9c6bf;
-    --fb-inlay: #2c3038;
+    --bg: #111111;
+    --surface: #191919;
+    --surface-2: #222222;
+    --text: #eeeeee;
+    --muted: #b4b4b4;
+    --line: #313131;
+    --accent: #ec5d5e;
+    --accent-ink: #191111;
+    --accent-soft: #3b1219;
+    --note: #70b8ff;
+    --note-ink: #0d1520;
+    --primary: #eeeeee;
+    --primary-ink: #111111;
+    --danger: #ffca16;
+    --fb-line: #6e6e6e;
+    --fb-nut: #b4b4b4;
+    --fb-inlay: #2a2a2a;
     --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 16px rgb(0 0 0 / .25);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #16181d; --surface: #1f2228; --surface-2: #2a2e36; --text: #e9e7e2; --muted: #9aa0ab;
-  --line: #353a43; --accent: #f0923a; --accent-ink: #1a1206; --accent-soft: #3d2a16;
-  --note: #5b98ec; --note-ink: #0b1526; --primary: #e9e7e2; --primary-ink: #16181d;
-  --danger: #ff7a6b; --fb-line: #6a707b; --fb-nut: #c9c6bf; --fb-inlay: #2c3038;
+  --bg: #111111; --surface: #191919; --surface-2: #222222; --text: #eeeeee; --muted: #b4b4b4;
+  --line: #313131; --accent: #ec5d5e; --accent-ink: #191111; --accent-soft: #3b1219;
+  --note: #70b8ff; --note-ink: #0d1520; --primary: #eeeeee; --primary-ink: #111111;
+  --danger: #ffca16; --fb-line: #6e6e6e; --fb-nut: #b4b4b4; --fb-inlay: #2a2a2a;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -101,6 +103,15 @@ button:disabled { cursor: not-allowed; }
 }
 .channel:hover { color: var(--text); background: var(--surface-2); }
 .channel svg { width: 16px; height: 16px; flex: none; }
+/* Ritorno alla pagina superiore (strumenti, volume) sotto il titolo */
+.back-link {
+  display: inline-flex; align-items: center; gap: 2px; max-width: 100%; margin-top: 2px; padding: 1px 4px;
+  border-radius: 6px; color: var(--muted); font-size: .74rem; text-decoration: none; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.back-link:hover { color: var(--text); background: var(--surface-2); }
+.back-link svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.back-link span { overflow: hidden; text-overflow: ellipsis; }
 .channel rect { fill: #e62117; }
 .channel path { fill: #fff; }
 
@@ -371,14 +382,11 @@ select {
 
 /* ============================================================ Pratica (audio, esercizi, tab) */
 
+/* Nota in riproduzione: ambra (amber-9), distinta dalla tonica rossa e dalle note blu. */
 :root {
-  --playing: #e5484d;
-  --playing-ink: #ffffff;
+  --playing: #ffc53d;
+  --playing-ink: #4f3422;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --playing: #ff6b6f; --playing-ink: #1a0b0b; }
-}
-:root[data-theme="dark"] { --playing: #ff6b6f; --playing-ink: #1a0b0b; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -557,3 +565,28 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
   body.has-transport .draw-bar .draw-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
   body.has-transport .transport-slot { display: none; }
 }
+
+/* ------------------------------------------------------------ Pagina di scelta degli strumenti */
+
+.home-page .brand { justify-items: center; padding-left: 0; }
+.home {
+  max-width: 880px; margin: 0 auto;
+  padding: 20px calc(var(--gutter) + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(var(--gutter) + env(safe-area-inset-left));
+}
+.home-intro { margin: 0 0 20px; color: var(--muted); }
+.home-intro a { color: var(--accent); }
+.tools { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+@media (min-width: 640px) { .tools { grid-template-columns: 1fr 1fr; } }
+.tool-card {
+  display: grid; gap: 6px; height: 100%; padding: 16px 18px; min-height: 44px;
+  color: inherit; text-decoration: none;
+}
+a.tool-card { border-left: 4px solid var(--accent); }
+a.tool-card:hover { background: var(--surface-2); }
+.tool-name { font-size: 1.15rem; font-weight: 650; }
+.tool-desc { color: var(--muted); font-size: .94rem; }
+.tool-go { justify-self: start; margin-top: 4px; font-size: .85rem; font-weight: 600; color: var(--accent); }
+.tool-card.is-soon { opacity: .7; }
+.tool-card.is-soon .tool-go { color: var(--muted); font-weight: 500; }
+.home-foot { margin-top: 28px; display: flex; justify-content: center; }
+.link-bar { margin-top: 4px; }

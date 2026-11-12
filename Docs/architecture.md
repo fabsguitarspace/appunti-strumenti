@@ -1,9 +1,19 @@
 # Architettura
 
-Strumenti per la pratica (ex Guitar Scale Practice) è una pagina statica senza build ([ADR 0001](ADR-0001-app-statica-senza-server.md)):
-script classici caricati in ordine, ognuno pubblica un oggetto globale
-([ADR 0002](ADR-0002-script-classici-namespace-globali.md)). I moduli puri si caricano anche
-da Node per i test.
+Strumenti per la pratica (ex Guitar Scale Practice) è un sito statico senza build
+([ADR 0001](ADR-0001-app-statica-senza-server.md)): script classici caricati in ordine, ognuno
+pubblica un oggetto globale ([ADR 0002](ADR-0002-script-classici-namespace-globali.md)). I moduli
+puri si caricano anche da Node per i test. È una suite di strumenti con nucleo comune
+([ADR 0010](ADR-0010-suite-di-strumenti.md)), pubblicata su GitHub Pages.
+
+## Pagine
+
+| Pagina | Contenuto |
+|---|---|
+| `index.html` | scelta dello strumento (Scale attivo; Arpeggi, Accordi, Progressioni in arrivo), ritorno al volume |
+| `scale.html` | strumento Scale: scala casuale, diteggiature, esercizi, trasporto |
+
+Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti»).
 
 ## Moduli
 
@@ -11,22 +21,27 @@ da Node per i test.
                  ┌────────────────────────── puri, testati in Node ──────────────────────────┐
 theory.js ─► guitar.js ─► exercises/pool.js ─► melodic.js ─► rhythm.js ─► fingering.js ─► presets.js
 (Theory)     (Guitar)     (Pool)               (Melodic)     (Rhythm)     (Fingering)     (Presets.build)
+events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Link: deep link)
                                                                                                │ eventi
                     ┌──────────────────────────────┬──────────────────────┬────────────────────┤
                     ▼                              ▼                      ▼                    ▼
    audio/scheduler.js ─► audio/engine.js     fretboard.js           tab/layout.js ─► tab/render.js
    (Scheduler, puro)     (AudioEngine)        (Fretboard: card e     (TabLayout, puro)  (TabRender)
                          audio/ks.js (KS)      tastiera intera)
-                    └──────────── rAF: evidenzia l'evento corrente in tutte le viste ────────────┘
-                                         practice.js (Practice: pannello, viste, trasporto)
+                    └── transport.js (Transport: Play/BPM/Tap, scheduler, rAF, wake lock) ──┘
+                                     │ onHighlight(evento)
+                                     ▼
+                         practice.js (Practice: pannello, viste, link dell'esercizio)
                                                     ▲
                                        app.js ──────┘  Practice.mount(context) dopo renderResult
 ```
 
 | Modulo | Responsabilità | Node |
 |---|---|---|
+| `theme.js` | tema chiaro/scuro dal parametro `theme` del link (per scheda) | no |
 | `theory.js` | note, gradi, catalogo 33 scale, spelling enarmonico, ♭/♯ | sì |
 | `guitar.js` | diteggiature 3NPS (18 posizioni per grado di partenza) | sì |
+| `events.js` | normalizzatore degli eventi: `notesOf` (nota singola o `notes[]`), `midisOf` | sì |
 | `exercises/pool.js` | ambiti, posizioni ammesse, pool di altezze con estensione | sì |
 | `exercises/melodic.js` | motivo × passo × direzione × forma → indici | sì |
 | `exercises/rhythm.js` | celle, swing, accenti, levare, ripetute → eventi in battiti (tick interi) | sì |
@@ -35,11 +50,13 @@ theory.js ─► guitar.js ─► exercises/pool.js ─► melodic.js ─► rhy
 | `audio/ks.js` | buffer Karplus-Strong + correzione di intonazione | sì |
 | `audio/scheduler.js` | lookahead, loop, count-in, metronomo, trainer, coda visiva | sì (clock finto) |
 | `audio/engine.js` | AudioContext, cache delle voci, smorzamento per corda, click | no |
-| `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; tab ASCII | sì |
+| `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; note impilate; tab ASCII | sì |
 | `tab/render.js` | SVG della tablatura | no |
 | `fretboard.js` | SVG delle diteggiature e della tastiera intera (`fretFrom/To`, `cellWidth`, `path`) | no |
-| `practice.js` | pannello Cosa/Come/Dove/Opzioni, trasporto, viste, wake lock, stampa | no |
-| `app.js` | estrazione casuale, rendering della scala, drawer, scorciatoie | no |
+| `link.js` | deep link: frammento ↔ parametri, note, identificatori delle scale, esercizio ([deep-link.md](deep-link.md)) | sì |
+| `transport.js` | trasporto comune: barra Play/BPM/Tap, avvio e arresto, trainer, volumi, wake lock, ciclo di evidenziazione | no |
+| `practice.js` | strumento Scale: pannello Cosa/Come/Dove/Opzioni, viste, ascolto rapido, «Copia link», stampa | no |
+| `app.js` | strumento Scale: estrazione casuale, rendering della scala, drawer, scorciatoie, lettura del link | no |
 
 ## Principi
 
@@ -53,19 +70,32 @@ theory.js ─► guitar.js ─► exercises/pool.js ─► melodic.js ─► rhy
 4. **Un solo clock**: quello di `AudioContext` ([ADR 0004](ADR-0004-scheduler-lookahead.md)).
 5. **Una sola sorgente per audio e notazione**: la tab è una vista degli eventi suonati
    ([ADR 0009](ADR-0009-tablatura.md)).
+6. **Le note di un evento si leggono sempre con `Events.notesOf`**: un evento può portare più note
+   simultanee (`notes[]`) o una sola (`string`, `fret`, `midi`). Audio, tastiera e tablatura
+   funzionano già con gli accordi ([ADR 0010](ADR-0010-suite-di-strumenti.md), punto 3).
+7. **I deep link sono un'interfaccia pubblica**: si estendono, non si rompono ([deep-link.md](deep-link.md)).
 
 ## Persistenza
 
-| Chiave `localStorage` | Contenuto |
-|---|---|
-| `interval-master:v1` | famiglie, tonica, opzioni, scala corrente, cronologia (chiave storica) |
-| `gsp:practice:v1` | impostazioni della pratica: assi, BPM, metronomo, loop, trainer, volumi, viste |
+Tutte le pagine condividono l'origine GitHub Pages, quindi `localStorage`: ogni strumento usa chiavi
+proprie. Le chiavi dello strumento Scale restano quelle storiche per non perdere le impostazioni
+salvate; gli strumenti nuovi useranno `gsp:<strumento>:v1`.
 
-## Ordine di caricamento
+| Chiave | Archivio | Contenuto |
+|---|---|---|
+| `interval-master:v1` | `localStorage` | Scale: famiglie, tonica, opzioni, scala corrente, cronologia (chiave storica) |
+| `gsp:practice:v1` | `localStorage` | Scale: assi, BPM, metronomo, loop, trainer, volumi, viste (chiave storica) |
+| `gsp:theme` | `sessionStorage` | tema scelto dal link (`dark`/`light`/`auto`), valido per la scheda |
+
+## Ordine di caricamento (`scale.html`)
 
 ```html
+<!-- nel <head>, prima del CSS -->
+<script src="js/theme.js"></script>
+<!-- in fondo al <body> -->
 <script src="js/theory.js"></script>
 <script src="js/guitar.js"></script>
+<script src="js/events.js"></script>
 <script src="js/exercises/pool.js"></script>
 <script src="js/exercises/melodic.js"></script>
 <script src="js/exercises/rhythm.js"></script>
@@ -77,6 +107,10 @@ theory.js ─► guitar.js ─► exercises/pool.js ─► melodic.js ─► rhy
 <script src="js/audio/engine.js"></script>
 <script src="js/audio/scheduler.js"></script>
 <script src="js/fretboard.js"></script>
+<script src="js/link.js"></script>
+<script src="js/transport.js"></script>
 <script src="js/practice.js"></script>
 <script src="js/app.js"></script>
 ```
+
+`index.html` carica solo `theme.js` e il CSS.

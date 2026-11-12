@@ -26,12 +26,16 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   accenti (copia come testo, stampa), elenco dei gradi o delle note.
 - **Trasporto**: Play/Stop, BPM, tap tempo, metronomo, battuta d'attacco, loop,
   **trainer di velocità** (+N BPM ogni M giri), volumi separati.
+- **Link dell'esercizio**: «Copia link dell'esercizio» produce un indirizzo che riapre scala,
+  tonica ed esercizio ([schema dei deep link](Docs/deep-link.md)); il volume lo usa per gli esercizi pronti.
 - Impostazioni, scala corrente e cronologia ricordate nel browser.
 
 ## Uso
 
-Apri `index.html` nel browser (funziona anche con doppio clic, da `file://`) oppure pubblica la
-cartella su un hosting statico (GitHub Pages, Netlify, …).
+Online: **https://fabsguitarspace.github.io/appunti-strumenti/** (GitHub Pages dal ramo `main`).
+
+In locale apri `index.html` (scelta dello strumento) o `scale.html` nel browser: funziona anche con
+doppio clic, da `file://`. Per clonare: `git clone https://github.com/fabsguitarspace/appunti-strumenti.git`.
 
 | Tasto | Azione |
 |---|---|
@@ -52,7 +56,8 @@ comunque la riproduzione).
 | ≥ 1024px | colonna | drawer | in cima al pannello Esercizi | 2 colonne |
 | ≥ 1280px | colonna | colonna | in cima al pannello Esercizi | 2 (3 da 1600px) |
 
-Tema chiaro/scuro automatico, aree sicure iOS, target di tocco ≥ 44px, `prefers-reduced-motion`.
+Tema «Appunti» (colori del volume Appunti di Pratica), chiaro/scuro automatico o dal parametro `theme`
+del link, aree sicure iOS, target di tocco ≥ 44px, `prefers-reduced-motion`.
 
 ## Struttura
 
@@ -60,8 +65,9 @@ Vedi [Docs/architecture.md](Docs/architecture.md) per il diagramma dei moduli e
 [Docs/](Docs/README.md) per ADR, catalogo degli esercizi e piano.
 
 ```
-index.html  css/style.css
-js/theory.js  js/guitar.js  js/fretboard.js  js/practice.js  js/app.js
+index.html (scelta dello strumento)  scale.html  css/style.css
+js/theme.js  js/theory.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
+js/transport.js  js/practice.js  js/app.js
 js/exercises/  pool · melodic · rhythm · fingering · presets
 js/audio/      ks · scheduler · engine
 js/tab/        layout · render

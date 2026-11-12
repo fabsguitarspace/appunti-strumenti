@@ -6,6 +6,7 @@
   'use strict';
 
   const isNode = typeof module !== 'undefined' && module.exports;
+  const Events = isNode ? require('../events.js') : root.Events;
   const EPS = 1e-6;
   const STRING_NAMES = ['E', 'A', 'D', 'G', 'B', 'e'];
 
@@ -30,7 +31,7 @@
   }
 
   /**
-   * @param events  eventi con {i, beat, dur, ndur, string, fret, accent, rest}
+   * @param events  eventi con {i, beat, dur, ndur, accent, rest} e note (`string`/`fret` o `notes[]`)
    * @param opts    { meter, width, pickupBeats, lengthBeats, minSpacing, leftPad }
    */
   function layout(events, opts = {}) {
@@ -86,8 +87,7 @@
           x: startX + (e.beat - bar.start) * beatW,
           beat: e.beat,
           ndur: e.ndur ?? e.dur,
-          string: e.string,
-          fret: e.fret,
+          notes: Events.notesOf(e),
           accent: !!e.accent,
           rest: !!e.rest,
           beams: beamsFor(e.ndur ?? e.dur),
@@ -164,11 +164,12 @@
         continue;
       }
       const e = c.e;
-      const txt = e.rest ? '' : String(e.fret);
+      const notes = Events.notesOf(e);
       const w = 3;
       for (let r = 0; r < 6; r++) {
         const s = 5 - r;
-        const cell = !e.rest && e.string === s ? txt : '';
+        const n = notes.find((x) => x.string === s);
+        const cell = n ? String(n.fret) : '';
         lines[r] += '-' + cell + '-'.repeat(w - 1 - cell.length);
       }
       acc += (e.accent ? ' > ' : '   ').slice(0, w);

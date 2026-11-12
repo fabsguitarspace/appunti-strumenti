@@ -97,11 +97,14 @@
         // Numeri dei tasti (sopra le righe, con sfondo) e accenti.
         for (const it of bar.items) {
           if (it.rest) continue;
-          const txt = String(it.fret);
+          // Una cifra per nota: le note simultanee si impilano sulle rispettive corde.
           const g = el('g', { class: 'tab-num', 'data-i': it.i });
-          const w = txt.length > 1 ? 14 : 8;
-          g.appendChild(el('rect', { x: it.x - w / 2 - 1, y: yOf(it.string) - 6.5, width: w + 2, height: 13, rx: 3 }));
-          g.appendChild(el('text', { x: it.x, y: yOf(it.string), 'text-anchor': 'middle', 'dominant-baseline': 'central' }, txt));
+          for (const n of it.notes) {
+            const txt = String(n.fret);
+            const w = txt.length > 1 ? 14 : 8;
+            g.appendChild(el('rect', { x: it.x - w / 2 - 1, y: yOf(n.string) - 6.5, width: w + 2, height: 13, rx: 3 }));
+            g.appendChild(el('text', { x: it.x, y: yOf(n.string), 'text-anchor': 'middle', 'dominant-baseline': 'central' }, txt));
+          }
           svg.appendChild(g);
           if (it.accent) svg.appendChild(el('text', { class: 'tab-accent', x: it.x, y: TOP - 13, 'text-anchor': 'middle' }, '>'));
         }

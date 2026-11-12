@@ -1,18 +1,19 @@
 /**
- * Pratica (ADR 0007): pannello Esercizi sui tre assi Cosa / Come / Dove, barra di trasporto,
- * viste sincronizzate (tastiera, tablatura, gradi), ascolto rapido delle diteggiature.
+ * Pratica dello strumento Scale (ADR 0007): pannello Esercizi sui tre assi Cosa / Come / Dove,
+ * viste sincronizzate (tastiera, tablatura, gradi), ascolto rapido delle diteggiature,
+ * link dell'esercizio. Il trasporto è in transport.js (ADR 0010).
  */
 (function (root) {
   'use strict';
 
   const T = root.Theory;
-  const { Pool, Presets, Scheduler, AudioEngine, Fretboard, TabLayout, TabRender } = root;
+  const { Pool, Presets, Fretboard, TabLayout, TabRender, Transport, Events, Link } = root;
 
+  // Chiave storica dello strumento Scale, mantenuta per non perdere le impostazioni salvate.
   const STORAGE_KEY = 'gsp:practice:v1';
   const DESKTOP = root.matchMedia('(min-width: 1024px)');
   const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
-  const BPM_MIN = 30;
-  const BPM_MAX = 300;
+  const { BPM_MIN, BPM_MAX, clampBpm } = Transport;
 
   const DIRECTIONS = [['up', 'Su'], ['down', 'Giù'], ['updown', 'Su e giù'], ['downup', 'Giù e su']];
   const EXTENSIONS = [['1', '1 ottava'], ['2', '2 ottave'], ['3', '3 ottave'], ['full', 'Tutta']];
@@ -45,20 +46,32 @@
 
   let settings = defaults();
 
+  const oneOf = (list, v, fallback) => (list.some(([k]) => k === String(v)) ? v : fallback);
+
+  /** Unisce impostazioni parziali (salvate o da un link) a una base, scartando i valori non validi. */
+  function merge(base, s) {
+    const out = {
+      ...base, ...s,
+      scope: { ...base.scope, ...(s.scope || {}) },
+      trainer: { ...base.trainer, ...(s.trainer || {}) },
+      views: { ...base.views, ...(s.views || {}) },
+    };
+    const p = Presets.PRESETS.find((x) => x.id === out.presetId);
+    if (!p) { out.presetId = base.presetId; out.category = base.category; } else out.category = p.category;
+    if (!Presets.RHYTHMS.some((r) => r.id === out.rhythmId)) out.rhythmId = base.rhythmId;
+    out.direction = oneOf(DIRECTIONS, out.direction, base.direction);
+    out.extension = oneOf(EXTENSIONS, out.extension, base.extension);
+    out.accent = oneOf(ACCENTS, out.accent, base.accent);
+    out.profile = oneOf(PROFILES, out.profile, base.profile);
+    out.scope.kind = oneOf(SCOPES, out.scope.kind, base.scope.kind);
+    out.bpm = clampBpm(out.bpm);
+    return out;
+  }
+
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const s = JSON.parse(raw);
-      const d = defaults();
-      settings = {
-        ...d, ...s,
-        scope: { ...d.scope, ...(s.scope || {}) },
-        trainer: { ...d.trainer, ...(s.trainer || {}) },
-        views: { ...d.views, ...(s.views || {}) },
-      };
-      if (!Presets.PRESETS.some((p) => p.id === settings.presetId)) settings.presetId = d.presetId;
-      settings.bpm = clampBpm(settings.bpm);
+      if (raw) settings = merge(defaults(), JSON.parse(raw));
     } catch (_) { settings = defaults(); }
   }
 
@@ -66,33 +79,25 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (_) { /* ignora */ }
   }
 
-  const clampBpm = (b) => Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(Number(b) || 80)));
-
   // ------------------------------------------------------------ Stato
 
-  let mounted = null;    // { key, scale, notes, patterns, rootPc, labelMode, container }
+  let mounted = null;    // { key, scale, notes, patterns, rootPc, labelMode, container, title, link }
   let exercise = null;   // risultato di Presets.build (cache)
-  let playing = null;    // { mode: 'exercise' | 'pattern', patternIndex }
   let current = null;    // evento evidenziato
-  let rafId = 0;
-  let wakeLock = null;
-  let taps = [];
   const openAxes = new Set(DESKTOP.matches ? ['cosa', 'come', 'dove', 'opzioni'] : []);
   let panelOpen = DESKTOP.matches;
   let resizeObs = null;
   let lastTabWidth = 0;
 
-  const sched = Scheduler.create({
-    now: () => AudioEngine.now(),
-    setTimer: (fn, ms) => setTimeout(fn, ms),
-    clearTimer: (id) => clearTimeout(id),
-    onNote: (ev, when, dur) => AudioEngine.playNote(ev.midi, when, {
-      velocity: ev.accent ? 1 : 0.6, string: ev.string, duration: dur,
-    }),
-    onClick: (when, downbeat) => AudioEngine.click(when, { downbeat }),
-    onEnd: () => stop(),
-    onTempo: (bpm) => { settings.bpm = bpm; save(); updateBpm(); },
+  const transport = Transport.create({
+    options: () => settings,
+    onBpm: (bpm) => { settings.bpm = bpm; save(); },
+    onPlayClick: () => togglePlay(),
+    onHighlight: (ev) => highlight(ev),
+    onChange: () => updatePlayButton(),
+    onError: (msg) => showError(msg),
   });
+  const playing = () => transport.playing();
 
   // ------------------------------------------------------------ DOM helpers
 
@@ -174,24 +179,11 @@
     fn(settings);
     save();
     exercise = null;
-    if (playing) stop();
+    if (playing()) stop();
     renderPanel();
   }
 
   // ------------------------------------------------------------ Trasporto
-
-  const transport = (() => {
-    const play = h('button', { type: 'button', class: 't-play', 'aria-label': 'Avvia esercizio', onclick: () => togglePlay() },
-      h('span', { class: 't-icon', 'aria-hidden': 'true' }), h('span', { class: 't-label' }, 'Play'));
-    const out = h('output', { class: 't-bpm-val', 'aria-live': 'polite' });
-    const bpm = h('div', { class: 't-bpm', role: 'group', 'aria-label': 'Tempo' },
-      h('button', { type: 'button', 'aria-label': 'Rallenta di 5 BPM', onclick: () => bumpBpm(-5) }, '−'),
-      h('span', { class: 't-bpm-box' }, out, h('small', {}, 'BPM')),
-      h('button', { type: 'button', 'aria-label': 'Accelera di 5 BPM', onclick: () => bumpBpm(5) }, '+'));
-    const tap = h('button', { type: 'button', class: 't-tap', onclick: () => tapTempo() }, 'Tap');
-    const el = h('div', { class: 'transport' }, play, bpm, tap);
-    return { el, play, out };
-  })();
 
   function placeTransport() {
     const home = mounted && mounted.container.querySelector('.transport-home');
@@ -200,129 +192,48 @@
     if (target && transport.el.parentNode !== target) target.appendChild(transport.el);
   }
 
-  function updateBpm() {
-    transport.out.textContent = settings.bpm;
-  }
-
   function updatePlayButton() {
-    const on = !!playing && playing.mode === 'exercise';
-    transport.play.classList.toggle('is-on', on);
-    transport.play.setAttribute('aria-label', on ? 'Ferma esercizio' : 'Avvia esercizio');
-    transport.play.querySelector('.t-label').textContent = on ? 'Stop' : 'Play';
+    const p = playing();
     const ex = mounted && getExercise();
-    transport.play.disabled = !ex || !ex.events.length;
+    transport.setPlayButton(!!p && p.mode === 'exercise', !ex || !ex.events.length);
     document.querySelectorAll('[data-quick]').forEach((b) => {
       const i = Number(b.dataset.quick);
-      const active = !!playing && playing.mode === 'pattern' && playing.patternIndex === i;
+      const active = !!p && p.mode === 'pattern' && p.patternIndex === i;
       b.classList.toggle('is-on', active);
       b.setAttribute('aria-label', `${active ? 'Ferma' : 'Ascolta'} la diteggiatura ${i + 1}`);
     });
   }
 
-  function bumpBpm(d) {
-    setBpm(settings.bpm + d);
-  }
-
-  function setBpm(b) {
-    settings.bpm = clampBpm(b);
-    save();
-    updateBpm();
-    if (playing) sched.setBpm(settings.bpm);
-  }
-
-  function tapTempo() {
-    const t = performance.now();
-    if (taps.length && t - taps[taps.length - 1] > 2000) taps = [];
-    taps.push(t);
-    if (taps.length > 5) taps.shift();
-    if (taps.length >= 2) {
-      const gaps = taps.slice(1).map((x, i) => x - taps[i]);
-      setBpm(60000 / (gaps.reduce((a, b) => a + b, 0) / gaps.length));
-    }
-  }
-
   // ------------------------------------------------------------ Riproduzione
 
   function togglePlay() {
-    if (playing && playing.mode === 'exercise') stop();
+    const p = playing();
+    if (p && p.mode === 'exercise') stop();
     else playExercise();
-  }
-
-  function start(ex, mode, extra = {}) {
-    if (!AudioEngine.unlock()) {
-      showError('Il browser non supporta Web Audio.');
-      return;
-    }
-    stop();
-    AudioEngine.setVolumes({ notes: settings.volNotes, click: settings.volClick });
-    AudioEngine.prepare(ex.events.map((e) => e.midi));
-    const bpm0 = settings.bpm;
-    const tr = settings.trainer;
-    sched.start(ex.events, {
-      bpm: bpm0,
-      loop: mode === 'exercise' ? settings.loop : false,
-      countIn: mode === 'exercise' ? settings.countIn : false,
-      metronome: mode === 'exercise' ? settings.metronome : false,
-      metroMode: settings.metroMode,
-      meter: 4,
-      lengthBeats: ex.lengthBeats,
-      pickupBeats: ex.pickupBeats,
-      tempoAt: mode === 'exercise' && settings.loop && tr.on
-        ? (it) => Math.min(Math.max(bpm0, tr.max), bpm0 + tr.step * Math.floor(it / Math.max(1, tr.every)))
-        : null,
-    });
-    playing = { mode, ...extra };
-    requestWakeLock();
-    updatePlayButton();
-    cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(frame);
   }
 
   function playExercise() {
     if (!mounted) return;
     const ex = getExercise();
     if (!ex.events.length) return;
-    start(ex, 'exercise');
+    transport.start(ex, 'exercise');
   }
 
   /** Ascolto rapido di una diteggiatura: lineare su e giù, ottavi, senza metronomo. */
   function quickPlay(index) {
     if (!mounted) return;
-    if (playing && playing.mode === 'pattern' && playing.patternIndex === index) { stop(); return; }
+    const p = playing();
+    if (p && p.mode === 'pattern' && p.patternIndex === index) { stop(); return; }
     const ex = Presets.build(ctx(), {
       presetId: 'lin-updown', direction: 'updown', extension: 'full', rhythmId: 'eighths',
       accent: 'beat', accentOffset: 0, pickup: 0, scope: { kind: 'pattern', index }, profile: 'balanced',
     });
-    if (ex.events.length) start(ex, 'pattern', { patternIndex: index });
+    if (ex.events.length) transport.start(ex, 'pattern', { patternIndex: index });
   }
 
   function stop() {
-    sched.stop();
-    AudioEngine.stopAll();
-    cancelAnimationFrame(rafId);
-    playing = null;
-    highlight(null);
-    releaseWakeLock();
+    transport.stop();
     updatePlayButton();
-  }
-
-  function frame() {
-    if (!sched.isPlaying()) return;
-    const ev = sched.drainVisual(AudioEngine.now() - AudioEngine.latency());
-    if (ev) highlight(ev.ev);
-    rafId = requestAnimationFrame(frame);
-  }
-
-  function requestWakeLock() {
-    try {
-      if (navigator.wakeLock && !wakeLock) {
-        navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {});
-      }
-    } catch (_) { /* non supportato */ }
-  }
-
-  function releaseWakeLock() {
-    if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
   }
 
   // ------------------------------------------------------------ Evidenziazione
@@ -332,18 +243,17 @@
     current = ev;
     if (!ev || !mounted) return;
     const c = mounted.container;
-    const sel = `.dot[data-s="${ev.string}"][data-f="${ev.fret}"]`;
-    if (playing && playing.mode === 'pattern') {
-      const d = document.querySelector(`figure[data-pattern="${playing.patternIndex}"] ${sel}`);
-      if (d) d.classList.add('is-playing');
-      return;
-    }
-    const dot = c.querySelector('.view-neck ' + sel);
-    if (dot) { dot.classList.add('is-playing'); followX(c.querySelector('.neck-scroll'), dot); }
-    if (settings.scope.kind === 'pattern') {
-      const d = document.querySelector(`figure[data-pattern="${settings.scope.index}"] ${sel}`);
-      if (d) d.classList.add('is-playing');
-    }
+    const p = playing();
+    const sels = Events.notesOf(ev).map((n) => `.dot[data-s="${n.string}"][data-f="${n.fret}"]`);
+    const mark = (scopeSel, follow) => sels.forEach((sel, k) => {
+      const d = (scopeSel ? document : c).querySelector((scopeSel || '.view-neck') + ' ' + sel);
+      if (!d) return;
+      d.classList.add('is-playing');
+      if (follow && k === 0) followX(c.querySelector('.neck-scroll'), d);
+    });
+    if (p && p.mode === 'pattern') { mark(`figure[data-pattern="${p.patternIndex}"]`); return; }
+    mark(null, true);
+    if (settings.scope.kind === 'pattern') mark(`figure[data-pattern="${settings.scope.index}"]`);
     const num = c.querySelector(`.tab-num[data-i="${ev.i}"]`);
     if (num) { num.classList.add('is-playing'); followY(c.querySelector('.tab-scroll'), num.ownerSVGElement); }
     const li = c.querySelector(`.degree-seq [data-i="${ev.i}"]`);
@@ -471,8 +381,8 @@
       select('metromode', 'Click del metronomo', [['all', 'Tutti i battiti'], ['downbeat', 'Solo il primo battito']], s.metroMode,
         (v) => change((st) => { st.metroMode = v; })),
       h('div', { class: 'field-row' },
-        range('volnotes', 'Volume note', s.volNotes, (v) => { settings.volNotes = v; save(); AudioEngine.setVolumes({ notes: v }); }),
-        range('volclick', 'Volume metronomo', s.volClick, (v) => { settings.volClick = v; save(); AudioEngine.setVolumes({ click: v }); })),
+        range('volnotes', 'Volume note', s.volNotes, (v) => { settings.volNotes = v; save(); transport.setVolumes({ notes: v }); }),
+        range('volclick', 'Volume metronomo', s.volClick, (v) => { settings.volClick = v; save(); transport.setVolumes({ click: v }); })),
       toggle('trainer', 'Trainer di velocità (con il loop)', tr.on, (v) => change((st) => { st.trainer.on = v; })),
       tr.on && h('div', { class: 'field-row three' },
         num('tstep', '+BPM', tr.step, 1, 40, 1, (v) => change((st) => { st.trainer.step = v; })),
@@ -496,10 +406,40 @@
       (k) => v[k], (k) => change((st) => { st.views[k] = !st.views[k]; }));
   }
 
+  // ------------------------------------------------------------ Link dell'esercizio
+
+  /** URL completo che riapre questa scala con questo esercizio (Docs/deep-link.md). */
+  function exerciseUrl() {
+    const base = root.location.href.split('#')[0];
+    return base + Link.build({ ...mounted.link, ...Link.encodeExercise(settings) });
+  }
+
+  function linkBar() {
+    const btn = h('button', { type: 'button', class: 'chip-btn', onclick: () => copyText(exerciseUrl(), () => {
+      btn.textContent = 'Link copiato ✓';
+      setTimeout(() => { btn.textContent = 'Copia link dell\'esercizio'; }, 1500);
+    }) }, 'Copia link dell\'esercizio');
+    return h('div', { class: 'row-buttons link-bar' }, btn);
+  }
+
+  /** Applica le impostazioni di un link (parziali, già decodificate) e le salva. */
+  function applyLink(partial) {
+    settings = merge(settings, partial);
+    if (partial.presetId && Presets.PRESETS.some((x) => x.id === partial.presetId)) {
+      // Il preset porta i suoi valori predefiniti; quelli espliciti del link prevalgono.
+      settings = merge(settings, { ...Presets.presetDefaults(partial.presetId), ...partial });
+    }
+    save();
+    exercise = null;
+    panelOpen = true;
+    openAxes.add('cosa'); openAxes.add('come'); openAxes.add('dove');
+  }
+
   function neckView(ex) {
     const sc = settings.scope;
-    const path = new Set(ex.events.filter((e) => !e.rest).map((e) => e.string + ':' + e.fret));
-    const used = ex.events.filter((e) => !e.rest).map((e) => e.fret);
+    const notes = ex.events.flatMap(Events.notesOf);
+    const path = new Set(notes.map((n) => n.string + ':' + n.fret));
+    const used = notes.map((n) => n.fret);
     let lo = 0;
     let hi = 24;
     if (sc.kind === 'neck' || sc.kind === 'strings') { lo = Math.min(sc.fretFrom, sc.fretTo); hi = Math.max(sc.fretFrom, sc.fretTo); }
@@ -539,7 +479,10 @@
   function copyTab(btn) {
     const ex = getExercise();
     const txt = `${mounted.title}\n\n` + TabLayout.toAscii(ex.events, { meter: 4, pickupBeats: ex.pickupBeats, lengthBeats: ex.lengthBeats });
-    const done = () => { btn.textContent = 'Copiata ✓'; setTimeout(() => { btn.textContent = 'Copia tab'; }, 1500); };
+    copyText(txt, () => { btn.textContent = 'Copiata ✓'; setTimeout(() => { btn.textContent = 'Copia tab'; }, 1500); });
+  }
+
+  function copyText(txt, done) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(txt).then(done, () => fallbackCopy(txt, done));
     } else fallbackCopy(txt, done);
@@ -586,6 +529,7 @@
         h('p', { class: 'practice-error', hidden: !ex.error, role: 'status' }, ex.error || ''),
         ex.truncated && h('p', { class: 'muted small' }, 'L\'ambito non contiene tutta l\'estensione chiesta: uso quella disponibile.'),
         !ex.error && viewsBar(),
+        !ex.error && mounted.link && linkBar(),
         !ex.error && s.views.neck && neckView(ex),
         !ex.error && s.views.tab && tabView(ex),
         !ex.error && s.views.degrees && degreesView(ex),
@@ -595,7 +539,7 @@
 
     mounted.container.replaceChildren(details);
     placeTransport();
-    updateBpm();
+    transport.render();
     updatePlayButton();
     requestAnimationFrame(() => drawTab());
     observeResize();
@@ -643,13 +587,13 @@
   // Stampa: tab alla larghezza di un A4 (circa 720 px), poi di nuovo a quella dello schermo.
   root.addEventListener('beforeprint', () => drawTab(720));
   root.addEventListener('afterprint', () => drawTab());
-  document.addEventListener('visibilitychange', () => { if (document.hidden && playing) stop(); });
   load();
 
   root.Practice = {
-    mount, unmount, quickPlay, togglePlay, bumpBpm, stop,
+    mount, unmount, quickPlay, togglePlay, stop, applyLink,
+    bumpBpm: (d) => transport.bumpBpm(d),
     isActive: () => !!mounted,
     isOpen: () => panelOpen,
-    isPlaying: () => !!playing,
+    isPlaying: () => !!playing(),
   };
 })(globalThis);

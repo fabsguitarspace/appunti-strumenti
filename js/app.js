@@ -1,5 +1,5 @@
 /**
- * Interfaccia: stato, estrazione casuale, rendering e persistenza locale.
+ * Strumento Scale: stato, estrazione casuale, rendering, persistenza locale e deep link.
  * Porting di interval-master/src/app.rs.
  */
 (function () {
@@ -8,6 +8,7 @@
   const T = window.Theory;
   const G = window.Guitar;
   const F = window.Fretboard;
+  const Link = window.Link;
 
   const PITCH_LABELS = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
   const HISTORY_LEN = 12;
@@ -16,6 +17,7 @@
   const WIDE = window.matchMedia('(min-width: 1280px)');
 
   const scales = T.catalog();
+  const scaleSlugs = scales.map((sc) => Link.slug(sc.name));
 
   // ------------------------------------------------------------ Stato
 
@@ -108,6 +110,36 @@
   }
 
   const titleOf = (p) => `${T.noteToString(p.root, true)} ${T.prettify(scales[p.scale].name)}`;
+
+  // ------------------------------------------------------------ Deep link (Docs/deep-link.md)
+
+  /**
+   * Applica il link nel frammento: scala e tonica diventano la scala corrente, i parametri
+   * dell'esercizio vanno al pannello. Poi il frammento si toglie dall'indirizzo, così ricaricare
+   * la pagina non annulla le modifiche successive. Restituisce true se c'era una scala valida.
+   */
+  function applyHash() {
+    const { params } = Link.parse(location.hash);
+    // Il solo tema lo gestisce theme.js: niente da applicare qui.
+    if (!Object.keys(params).some((k) => k !== 'theme')) return false;
+    const scale = scaleSlugs.indexOf(params.scale);
+    const root = Link.parseNote(params.root);
+    let ok = false;
+    if (scale >= 0 && root) {
+      const pick = { scale, root };
+      if (state.current && !samePick(state.current, pick)) {
+        state.history.unshift(state.current);
+        state.history.length = Math.min(state.history.length, HISTORY_LEN);
+      }
+      state.current = pick;
+      state.revealed = true;
+      ok = true;
+    }
+    window.Practice.applyLink(Link.decodeExercise(params));
+    save();
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) { /* file:// restrittivi */ }
+    return ok;
+  }
 
   // ------------------------------------------------------------ DOM helpers
 
@@ -257,7 +289,7 @@
         segmented,
       ),
       h('p', { class: 'muted small' },
-        'Accordatura standard (EADGBE). Una diteggiatura per ogni grado di partenza sulla 6ª corda; tonica in arancione.'),
+        'Accordatura standard (EADGBE). Una diteggiatura per ogni grado di partenza sulla 6ª corda; tonica in rosso.'),
       grid,
     );
 
@@ -270,6 +302,7 @@
       labelMode: state.dotLabel,
       container: practiceHost,
       title: `${T.noteToString(p.root)} ${scale.name}`,
+      link: { scale: scaleSlugs[p.scale], root: Link.noteParam(p.root) },
     });
   }
 
@@ -382,9 +415,18 @@
   }
 
   load();
+  applyHash();
   renderSettings();
   renderResult();
   renderHistory();
   syncInert();
   bind();
+  // Un link incollato nella stessa scheda: si applica senza ricaricare.
+  window.addEventListener('hashchange', () => {
+    if (!location.hash) return;
+    applyHash();
+    renderResult();
+    renderHistory();
+    window.scrollTo({ top: 0 });
+  });
 })();
