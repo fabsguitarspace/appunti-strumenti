@@ -87,12 +87,12 @@ nessuna dipendenza.
 
 Decisa dall'utente il 2026-11-12 (ADR 0010, Conseguenze).
 
-1. Utente, su GitHub: Settings → General → Repository name → `appunti-strumenti`.
-2. Locale: `git remote set-url origin https://github.com/fabsguitarspace/appunti-strumenti.git`;
-   facoltativo rinominare la cartella in `~/Projects/appunti/appunti-strumenti` accanto agli altri
-   progetti (aggiornare i riferimenti relativi nelle analisi di appunti-pratica).
-3. Sorgenti: README, `package.json` (`name`, `description`), `<title>`/meta e testata
-   dell'app; nome visibile da decidere (titolo di lavoro «Appunti — Strumenti per la pratica»).
+1. ✅ Utente, su GitHub: Settings → General → Repository name → `appunti-strumenti` (fatto il 2026-11-12).
+2. Locale: `git remote set-url origin https://github.com/fabsguitarspace/appunti-strumenti.git`
+   (da fare); ✅ cartella spostata in `~/Projects/appunti/appunti-strumenti` e riferimenti nelle
+   analisi di appunti-pratica aggiornati (2026-11-12).
+3. ✅ Sorgenti: README, `package.json`, `<title>`/meta e testata dell'app con il nome visibile
+   **«Strumenti per la pratica»**, scelto dall'utente il 2026-11-12.
 4. Attivare GitHub Pages dal ramo principale; verificare
    `https://fabsguitarspace.github.io/appunti-strumenti/` e un deep link.
 5. Solo dopo: link dal volume.

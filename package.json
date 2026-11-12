@@ -1,8 +1,8 @@
 {
-  "name": "guitar-scale-practice",
+  "name": "appunti-strumenti",
   "version": "0.1.0",
   "private": true,
-  "description": "Interval Master in versione web statica (HTML/CSS/JS, nessun server).",
+  "description": "Strumenti per la pratica alla chitarra: app web statica (HTML/CSS/JS, nessun server).",
   "scripts": {
     "test": "node --test tests/*.test.js"
   }

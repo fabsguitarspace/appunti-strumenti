@@ -1,6 +1,6 @@
 # Architettura
 
-Guitar Scale Practice è una pagina statica senza build ([ADR 0001](ADR-0001-app-statica-senza-server.md)):
+Strumenti per la pratica (ex Guitar Scale Practice) è una pagina statica senza build ([ADR 0001](ADR-0001-app-statica-senza-server.md)):
 script classici caricati in ordine, ognuno pubblica un oggetto globale
 ([ADR 0002](ADR-0002-script-classici-namespace-globali.md)). I moduli puri si caricano anche
 da Node per i test.

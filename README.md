@@ -1,8 +1,13 @@
-# Guitar Scale Practice
+# Strumenti per la pratica
 
-App web per studiare le scale alla chitarra, di [Fabrizio's Guitar Space](https://www.youtube.com/@fabsguitarspace).
-Solo HTML, CSS e JavaScript: **nessun server**, responsive e mobile-first. Nasce come versione web
-di `../interval-master` (app desktop Rust/egui).
+Strumenti web per la pratica alla chitarra, di [Fabrizio's Guitar Space](https://www.youtube.com/@fabsguitarspace),
+collegati al volume [Appunti di Pratica per Chitarra Jazz](https://appunti-pratica-per-chitarra-jazz.readthedocs.io)
+(capitolo «Strumenti per la pratica»). Oggi c'è lo strumento **Scale**; Arpeggi, Accordi e Progressioni
+sono pianificati ([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md)).
+
+Solo HTML, CSS e JavaScript: **nessun server**, responsive e mobile-first. Repository
+[`fabsguitarspace/appunti-strumenti`](https://github.com/fabsguitarspace/appunti-strumenti), ex
+Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app desktop Rust/egui).
 
 ## Funzioni
 
