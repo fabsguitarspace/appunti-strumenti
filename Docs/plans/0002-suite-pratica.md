@@ -1,6 +1,6 @@
 # Piano 0002 — Suite di pratica: Scale, Arpeggi, Accordi, Progressioni
 
-- Stato: Approvato (2026-11-12), da avviare. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
+- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
 - Decisioni: [ADR 0010](../ADR-0010-suite-di-strumenti.md); lato volume
   `appunti-pratica/Docs/adr/0005-strumenti-interattivi-nel-volume.md` e analisi 019
 
@@ -61,12 +61,19 @@ Esito (2026-11-12):
   1280 px, chiaro e scuro): deep link applicato, riproduzione con evidenziazione su tastiera,
   tablatura e gradi, ascolto rapido, «Copia link», nessun errore in console.
 
-### 1. Integrazione nel volume (solo Scale)
+### 1. Integrazione nel volume (solo Scale) — ✅ completata il 2026-11-12
 
 - GSP: attivazione di GitHub Pages; test che fissano lo schema dei deep link `v=1`.
 - appunti-pratica (ADR 0005): indirizzo base in `conf.py`, script che aggiunge `theme` ai link,
   capitolo con la pagina Scale ed esercizi pronti ricalcati su `4-scale.rst`.
 - Serve a validare presto Pages, iOS e PDF/ePub.
+
+**Esito.** Capitolo 11 «Strumenti per la pratica» del volume (versione 1.1) con otto esercizi
+pronti, verificati uno per uno sul sito pubblicato; `tests/test_strumenti_links.py` del volume
+li controlla con `js/link.js` e i cataloghi di questo repository, quindi **rinominare un id di
+esercizio, ritmo o scala fa fallire il test del volume**. Corretto in [deep-link.md](../deep-link.md)
+l'esempio sulle corde 6 e 5 (solo nove note fino al XII tasto) con le corde 5 e 4. Resta la prova
+su iPhone e Android. Dettagli: analisi 019 di appunti-pratica, «Esito dell'attuazione».
 
 ### 2. Arpeggi
 

@@ -49,10 +49,10 @@ pulsante **Copia link dell'esercizio** nel pannello Esercizi produce il link del
 Senza `scale` e `root` validi resta la scala corrente e si applicano solo le impostazioni
 dell'esercizio.
 
-Esempio: Re dorico, ottavi swing sulle corde 6 e 5 fino al 12° tasto, 120 BPM, tema scuro:
+Esempio: Re dorico, ottavi swing sulle corde 5 e 4 fino al 12° tasto, 120 BPM, tema scuro:
 
 ```
-scale.html#v=1&scale=dorica&root=D&preset=lin-updown&rhythm=swing&scope=strings&strings=65&from=0&to=12&bpm=120&theme=dark
+scale.html#v=1&scale=dorica&root=D&preset=lin-updown&rhythm=swing&scope=strings&strings=54&from=0&to=12&bpm=120&theme=dark
 ```
 
 ### Identificatori delle scale
