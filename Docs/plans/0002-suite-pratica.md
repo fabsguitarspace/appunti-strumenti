@@ -93,8 +93,9 @@ Decisa dall'utente il 2026-11-12 (ADR 0010, Conseguenze).
    analisi di appunti-pratica aggiornati (2026-11-12).
 3. ✅ Sorgenti: README, `package.json`, `<title>`/meta e testata dell'app con il nome visibile
    **«Strumenti per la pratica»**, scelto dall'utente il 2026-11-12.
-4. Attivare GitHub Pages dal ramo principale; verificare
-   `https://fabsguitarspace.github.io/appunti-strumenti/` e un deep link.
+4. ✅ GitHub Pages attivo dal ramo `main`, radice (2026-11-12): pagina, CSS e script rispondono,
+   estrazione di una scala senza errori in console, testata senza overflow a 375 px. Deep link da
+   verificare dopo la fase 0 (`link.js`).
 5. Solo dopo: link dal volume.
 
 ## Rischi
