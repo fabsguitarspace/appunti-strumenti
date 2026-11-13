@@ -1,7 +1,9 @@
 /**
- * Pratica dello strumento Scale (ADR 0007): pannello Esercizi sui tre assi Cosa / Come / Dove,
- * viste sincronizzate (tastiera, tablatura, gradi), ascolto rapido delle diteggiature,
- * link dell'esercizio. Il trasporto è in transport.js (ADR 0010).
+ * Pannello Esercizi (ADR 0007) degli strumenti a note singole (Scale, Arpeggi; ADR 0011): tre
+ * assi Cosa / Come / Dove, viste sincronizzate (tastiera, tablatura, gradi), ascolto rapido
+ * delle diteggiature, link dell'esercizio. Il trasporto è in transport.js (ADR 0010).
+ * Lo strumento lo configura una volta con `configure` (catalogo dei preset, chiave di
+ * salvataggio, etichette) e poi lo monta sull'insieme di note corrente.
  */
 (function (root) {
   'use strict';
@@ -9,8 +11,9 @@
   const T = root.Theory;
   const { Pool, Presets, Fretboard, TabLayout, TabRender, Transport, Events, Link } = root;
 
-  // Chiave storica dello strumento Scale, mantenuta per non perdere le impostazioni salvate.
-  const STORAGE_KEY = 'gsp:practice:v1';
+  /** Configurazione dello strumento: vedi `configure`. */
+  let cfg = { storageKey: 'gsp:practice:v1', catalog: Presets, patternScope: 'Diteggiatura 3NPS', start: false };
+  let cat = Presets;
   const DESKTOP = root.matchMedia('(min-width: 1024px)');
   const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e'];
   const { BPM_MIN, BPM_MAX, clampBpm } = Transport;
@@ -20,8 +23,9 @@
   const ACCENTS = [['group', 'Sul gruppo'], ['beat', 'Sul battito'], ['2', 'Ogni 2'], ['3', 'Ogni 3'], ['4', 'Ogni 4']];
   const OFFSETS = [['0', 'Nessuno'], ['1', '+1'], ['2', '+2'], ['3', '+3']];
   const PICKUPS = [['0', 'Nessuno'], ['1', '1 nota'], ['2', '2 note'], ['3', '3 note']];
-  const SCOPES = [
-    ['neck', 'Tastiera intera'], ['strings', 'Corde'], ['pattern', 'Diteggiatura 3NPS'],
+  let SCOPES = [];
+  const scopesFor = (patternScope) => [
+    ['neck', 'Tastiera intera'], ['strings', 'Corde'], ['pattern', patternScope],
     ['position', 'Posizione (5 tasti)'], ['chain', 'Collegamento posizioni'],
   ];
   const PROFILES = [['balanced', 'Bilanciata'], ['horizontal', 'Orizzontale'], ['vertical', 'Verticale']];
@@ -30,9 +34,9 @@
   // ------------------------------------------------------------ Impostazioni
 
   const defaults = () => ({
-    ...Presets.DEFAULTS,
+    ...cat.DEFAULTS,
     category: 'linear',
-    scope: { ...Presets.DEFAULTS.scope },
+    scope: { ...cat.DEFAULTS.scope },
     bpm: 80,
     metronome: true,
     metroMode: 'all',
@@ -44,7 +48,7 @@
     views: { neck: true, tab: true, degrees: true },
   });
 
-  let settings = defaults();
+  let settings = null;
 
   const oneOf = (list, v, fallback) => (list.some(([k]) => k === String(v)) ? v : fallback);
 
@@ -56,9 +60,10 @@
       trainer: { ...base.trainer, ...(s.trainer || {}) },
       views: { ...base.views, ...(s.views || {}) },
     };
-    const p = Presets.PRESETS.find((x) => x.id === out.presetId);
+    const p = cat.PRESETS.find((x) => x.id === out.presetId);
     if (!p) { out.presetId = base.presetId; out.category = base.category; } else out.category = p.category;
-    if (!Presets.RHYTHMS.some((r) => r.id === out.rhythmId)) out.rhythmId = base.rhythmId;
+    if (!cat.RHYTHMS.some((r) => r.id === out.rhythmId)) out.rhythmId = base.rhythmId;
+    out.startDegree = Number.isInteger(out.startDegree) && out.startDegree >= 0 ? out.startDegree : 0;
     out.direction = oneOf(DIRECTIONS, out.direction, base.direction);
     out.extension = oneOf(EXTENSIONS, out.extension, base.extension);
     out.accent = oneOf(ACCENTS, out.accent, base.accent);
@@ -69,20 +74,21 @@
   }
 
   function load() {
+    settings = defaults();
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(cfg.storageKey);
       if (raw) settings = merge(defaults(), JSON.parse(raw));
     } catch (_) { settings = defaults(); }
   }
 
   function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (_) { /* ignora */ }
+    try { localStorage.setItem(cfg.storageKey, JSON.stringify(settings)); } catch (_) { /* ignora */ }
   }
 
   // ------------------------------------------------------------ Stato
 
-  let mounted = null;    // { key, scale, notes, patterns, rootPc, labelMode, container, title, link }
-  let exercise = null;   // risultato di Presets.build (cache)
+  let mounted = null;    // { key, semis, rootOnce, patterns, degreeLabels, noteLabels, rootPc, labelMode, container, title, hint, link }
+  let exercise = null;   // risultato di build del catalogo (cache)
   let current = null;    // evento evidenziato
   const openAxes = new Set(DESKTOP.matches ? ['cosa', 'come', 'dove', 'opzioni'] : []);
   let panelOpen = DESKTOP.matches;
@@ -154,7 +160,7 @@
   // ------------------------------------------------------------ Esercizio
 
   function ctx() {
-    return Pool.context(T.semitones(mounted.scale), mounted.rootPc, mounted.patterns);
+    return Pool.context(mounted.semis, mounted.rootPc, mounted.patterns, { rootOnce: mounted.rootOnce });
   }
 
   function getExercise() {
@@ -163,15 +169,14 @@
       if (s.scope.kind === 'pattern') s.scope.index = Math.min(s.scope.index, mounted.patterns.length - 1);
       s.extension = s.extension === 'full' ? 'full' : Number(s.extension);
       s.accent = /^\d+$/.test(String(s.accent)) ? Number(s.accent) : s.accent;
-      exercise = Presets.build(ctx(), s);
+      if (!cfg.start || s.startDegree >= mounted.semis.length) s.startDegree = 0;
+      exercise = cat.build(ctx(), s);
     }
     return exercise;
   }
 
   function labelFor(degree) {
-    return mounted.labelMode === 'note'
-      ? T.noteToString(mounted.notes[degree], true)
-      : T.degreeToString(mounted.scale.degrees[degree], true);
+    return (mounted.labelMode === 'note' ? mounted.noteLabels : mounted.degreeLabels)[degree];
   }
 
   /** Applica una modifica alle impostazioni: salva, ricalcola, ridisegna. */
@@ -224,7 +229,7 @@
     if (!mounted) return;
     const p = playing();
     if (p && p.mode === 'pattern' && p.patternIndex === index) { stop(); return; }
-    const ex = Presets.build(ctx(), {
+    const ex = cat.build(ctx(), {
       presetId: 'lin-updown', direction: 'updown', extension: 'full', rhythmId: 'eighths',
       accent: 'beat', accentOffset: 0, pickup: 0, scope: { kind: 'pattern', index }, profile: 'balanced',
     });
@@ -291,32 +296,36 @@
 
   function cosaAxis() {
     const s = settings;
-    const p = Presets.preset(s.presetId);
-    const presets = Presets.PRESETS.filter((x) => x.category === s.category);
-    const symmetric = mounted.scale.degrees.length !== 7;
-    return axis('cosa', 'Cosa', `${p.label} · ${label(DIRECTIONS, s.direction)}${s.scope.kind === 'chain' ? '' : ' · ' + label(EXTENSIONS, s.extension)}`,
-      select('category', 'Famiglia', Presets.CATEGORIES.map((c) => [c.id, c.label]), s.category, (v) => change((st) => {
+    const p = cat.preset(s.presetId);
+    const presets = cat.PRESETS.filter((x) => x.category === s.category);
+    const hint = mounted.hint && mounted.hint(s.category);
+    // Nota di partenza (arpeggi: rivolti): vale con un'estensione in ottave, non con «Tutta».
+    const canStart = cfg.start && s.scope.kind !== 'chain' && s.extension !== 'full';
+    const startAt = canStart && s.startDegree < mounted.semis.length ? s.startDegree : 0;
+    const starts = mounted.degreeLabels.map((_, d) => [String(d), d === 0 ? `Fondamentale (${labelFor(0)})` : labelFor(d)]);
+    return axis('cosa', 'Cosa', `${p.label} · ${label(DIRECTIONS, s.direction)}${s.scope.kind === 'chain' ? '' : ' · ' + label(EXTENSIONS, s.extension)}${startAt ? ' · da ' + labelFor(startAt) : ''}`,
+      select('category', 'Famiglia', cat.CATEGORIES.map((c) => [c.id, c.label]), s.category, (v) => change((st) => {
         st.category = v;
-        Object.assign(st, Presets.presetDefaults(Presets.PRESETS.find((x) => x.category === v).id));
+        Object.assign(st, cat.presetDefaults(cat.PRESETS.find((x) => x.category === v).id));
       })),
       select('preset', 'Esercizio', presets.map((x) => [x.id, x.label]), s.presetId, (v) => change((st) => {
-        Object.assign(st, Presets.presetDefaults(v));
+        Object.assign(st, cat.presetDefaults(v));
       })),
       segmented('direction', 'Direzione', DIRECTIONS, s.direction, (v) => change((st) => { st.direction = v; })),
       s.scope.kind !== 'chain' && select('extension', 'Estensione', EXTENSIONS, s.extension, (v) => change((st) => { st.extension = v; })),
-      symmetric && s.category !== 'linear' && s.category !== 'rhythmic' &&
-        h('p', { class: 'muted small' }, 'Scala simmetrica: gli intervalli sono salti di gradi della scala (terza = 2 gradi).'),
+      canStart && select('start', 'Partenza da', starts, startAt, (v) => change((st) => { st.startDegree = Number(v); })),
+      hint && h('p', { class: 'muted small' }, hint),
     );
   }
 
   function comeAxis() {
     const s = settings;
-    const r = Presets.rhythmDef(s.rhythmId);
+    const r = cat.rhythmDef(s.rhythmId);
     const sum = [r.label, label(ACCENTS, s.accent)];
     if (Number(s.accentOffset)) sum.push(`spostato ${label(OFFSETS, s.accentOffset)}`);
     if (Number(s.pickup)) sum.push('in levare');
     return axis('come', 'Come', sum.join(' · '),
-      select('rhythm', 'Ritmo', Presets.RHYTHMS.map((x) => [x.id, x.label]), s.rhythmId, (v) => change((st) => { st.rhythmId = v; })),
+      select('rhythm', 'Ritmo', cat.RHYTHMS.map((x) => [x.id, x.label]), s.rhythmId, (v) => change((st) => { st.rhythmId = v; })),
       select('accent', 'Accento', ACCENTS, s.accent, (v) => change((st) => { st.accent = v; })),
       select('offset', 'Spostamento accento', OFFSETS, s.accentOffset, (v) => change((st) => { st.accentOffset = Number(v); })),
       select('pickup', 'Levare', PICKUPS, s.pickup, (v) => change((st) => { st.pickup = Number(v); })),
@@ -408,10 +417,11 @@
 
   // ------------------------------------------------------------ Link dell'esercizio
 
-  /** URL completo che riapre questa scala con questo esercizio (Docs/deep-link.md). */
+  /** URL completo che riapre questo elemento con questo esercizio (Docs/deep-link.md). */
   function exerciseUrl() {
     const base = root.location.href.split('#')[0];
-    return base + Link.build({ ...mounted.link, ...Link.encodeExercise(settings) });
+    const s = { ...settings, startDegree: cfg.start && settings.extension !== 'full' && settings.scope.kind !== 'chain' ? settings.startDegree : 0 };
+    return base + Link.build({ ...mounted.link, ...Link.encodeExercise(s) });
   }
 
   function linkBar() {
@@ -425,9 +435,9 @@
   /** Applica le impostazioni di un link (parziali, già decodificate) e le salva. */
   function applyLink(partial) {
     settings = merge(settings, partial);
-    if (partial.presetId && Presets.PRESETS.some((x) => x.id === partial.presetId)) {
+    if (partial.presetId && cat.PRESETS.some((x) => x.id === partial.presetId)) {
       // Il preset porta i suoi valori predefiniti; quelli espliciti del link prevalgono.
-      settings = merge(settings, { ...Presets.presetDefaults(partial.presetId), ...partial });
+      settings = merge(settings, { ...cat.presetDefaults(partial.presetId), startDegree: 0, ...partial });
     }
     save();
     exercise = null;
@@ -445,7 +455,7 @@
     if (sc.kind === 'neck' || sc.kind === 'strings') { lo = Math.min(sc.fretFrom, sc.fretTo); hi = Math.max(sc.fretFrom, sc.fretTo); }
     else if (used.length) { lo = Math.max(0, Math.min(...used) - 1); hi = Math.min(24, Math.max(...used) + 1); }
     const all = Pool.allowedPositions({ kind: 'neck', fretFrom: lo, fretTo: hi }, ctx());
-    const labels = mounted.scale.degrees.map((_, d) => labelFor(d));
+    const labels = mounted.degreeLabels.map((_, d) => labelFor(d));
     const svg = Fretboard.render({ positions: all, minFret: lo, maxFret: hi }, labels,
       'Percorso dell\'esercizio sulla tastiera', { fretFrom: lo, fretTo: hi, cellWidth: 36, path });
     return h('section', { class: 'view view-neck' },
@@ -515,8 +525,8 @@
     const focusedCtl = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-ctl');
     const ex = getExercise();
     const s = settings;
-    const p = Presets.preset(s.presetId);
-    const summary = `${p.label} · ${Presets.rhythmDef(s.rhythmId).label} · ${label(SCOPES, s.scope.kind)}`;
+    const p = cat.preset(s.presetId);
+    const summary = `${p.label} · ${cat.rhythmDef(s.rhythmId).label} · ${label(SCOPES, s.scope.kind)}`;
 
     const details = h('details', { class: 'card practice', open: panelOpen },
       h('summary', { class: 'practice-summary' },
@@ -563,8 +573,22 @@
   // ------------------------------------------------------------ API
 
   /**
-   * Monta il pannello per la scala corrente. Con la stessa scala (es. cambio etichette Gradi/Note)
-   * la riproduzione continua; con una scala diversa si ferma.
+   * Configura il pannello per lo strumento della pagina, prima di montarlo.
+   * @param c { storageKey: chiave localStorage delle impostazioni,
+   *            catalog: catalogo dei preset (quello delle scale o quello degli arpeggi),
+   *            patternScope: nome dell'ambito «diteggiatura»,
+   *            start: true se l'esercizio può partire da una nota diversa dalla tonica }
+   */
+  function configure(c) {
+    cfg = { ...cfg, ...c };
+    cat = cfg.catalog;
+    SCOPES = scopesFor(cfg.patternScope);
+    load();
+  }
+
+  /**
+   * Monta il pannello per l'insieme di note corrente (scala o arpeggio). Con lo stesso insieme
+   * (es. cambio etichette Gradi/Note) la riproduzione continua; con uno diverso si ferma.
    */
   function mount(context) {
     const same = mounted && mounted.key === context.key;
@@ -587,10 +611,10 @@
   // Stampa: tab alla larghezza di un A4 (circa 720 px), poi di nuovo a quella dello schermo.
   root.addEventListener('beforeprint', () => drawTab(720));
   root.addEventListener('afterprint', () => drawTab());
-  load();
+  configure({});
 
   root.Practice = {
-    mount, unmount, quickPlay, togglePlay, stop, applyLink,
+    configure, mount, unmount, quickPlay, togglePlay, stop, applyLink,
     bumpBpm: (d) => transport.bumpBpm(d),
     isActive: () => !!mounted,
     isOpen: () => panelOpen,

@@ -178,3 +178,28 @@ Le sequenze di esempio di questo documento diventano test: per Do ionica con poo
 | 2.1 Terze, `down` | `15 13 14 12 13 11` |
 
 Verificati con un prototipo del generatore il 2026-11-01.
+
+## Strumento Arpeggi
+
+Catalogo `Presets.ARPEGGI` in `js/exercises/presets.js` ([ADR 0011](ADR-0011-strumento-arpeggi.md)).
+Stessa pipeline e stessi ritmi delle scale; i motivi si muovono **sulle note dell'arpeggio**
+(per un arpeggio a 4 note: 1 3 5 7, poi 8 = fondamentale all'ottava). Ambito predefinito:
+diteggiatura in posizione 1. «Partenza da» (`startDegree`) fa cominciare il pool dalla 3ª, 5ª, 7ª:
+le estensioni in ottave si contano da lì.
+
+| Categoria | Id | Esercizio | Esempio su Cmaj7 |
+|---|---|---|---|
+| Lineari | `lin-up` `lin-down` `lin-updown` `lin-downup` | come nelle scale | C E G B C … |
+| Salti | `skip-1` | una nota sì e una no, `motif [0,2]` | C-G, E-B, G-C … |
+| | `skip-1a` | idem, alternati | C-G, B-E, G-C … |
+| | `skip-2` | salto di due note, `motif [0,3]` | C-B, E-C, G-E … |
+| | `mix-21` | su di due, giù di una, terzine | C G E, E B G … |
+| Gruppi e rivolti | `grp-3` | gruppi di 3, terzine | CEG EGB GBC … |
+| | `grp-4` | rivolti in sequenza, `motif [0..3]` | CEGB EGBC GBCE … |
+| | `grp-3p` `grp-4p` | andata e ritorno (palindromi) | CEGB BGEC EGBC … |
+| Ritmici | `rit-3` `rit-16` `rit-swing` | lineari su e giù, accento sul battito | |
+| | `rit-acc3` | accento ogni 3 su ottavi (3 contro 4) | |
+| | `rit-pickup` | rivolti in levare di una nota | |
+
+Arpeggi di nona: la nona sostituisce la fondamentale sopra la settima (C E G B♭ D E G B♭ D),
+quindi i motivi si muovono su quella successiva.

@@ -1,29 +1,48 @@
 /**
- * Strumento Scale: stato, estrazione casuale, rendering, persistenza locale e deep link.
- * Porting di interval-master/src/app.rs.
+ * Guscio comune agli strumenti a estrazione (Scale, Arpeggi; ADR 0011): stato, estrazione
+ * casuale di elemento × tonica, rendering, cronologia, drawer, scorciatoie, persistenza locale
+ * e deep link. Lo strumento si descrive con una definizione passata ad App.start (js/scale.js,
+ * js/arpeggi.js). Nato come porting di interval-master/src/app.rs.
+ *
+ * Definizione:
+ *   storageKey   chiave localStorage dello strumento
+ *   itemKey      nome del campo dell'elemento nelle estrazioni salvate ('scale', 'chord')
+ *   linkKey      parametro del deep link che identifica l'elemento
+ *   families     [{ id, label }]; items [{ family, … }]; slugs: identificatore di ogni elemento
+ *   bestRoots(item, pc)   nomi ammessi della tonica
+ *   title(item, root)     titolo mostrato
+ *   poolLabel             es. 'Scale nel pool'
+ *   practice              configurazione del pannello Esercizi (Practice.configure)
+ *   view(item, root) → { eyebrow, sub, quizHint, notesLabel, notes, degreeLabels, noteLabels,
+ *                        details: [[termine, valore]], semis, rootOnce, patterns, patternMeta(pat),
+ *                        sectionTitle, sectionNote, plainTitle, hint(categoria) }
  */
 (function () {
   'use strict';
 
   const T = window.Theory;
-  const G = window.Guitar;
   const F = window.Fretboard;
   const Link = window.Link;
 
+  function start(def) {
+
   const PITCH_LABELS = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
   const HISTORY_LEN = 12;
-  const STORAGE_KEY = 'interval-master:v1'; // chiave storica, mantenuta per non perdere le impostazioni
+  const STORAGE_KEY = def.storageKey;
+  const K = def.itemKey;
   const DESKTOP = window.matchMedia('(min-width: 1024px)');
   const WIDE = window.matchMedia('(min-width: 1280px)');
 
-  const scales = T.catalog();
-  const scaleSlugs = scales.map((sc) => Link.slug(sc.name));
+  const items = def.items;
+  const slugs = def.slugs;
+  const isFamily = (id) => def.families.some((f) => f.id === id);
+  window.Practice.configure(def.practice);
 
   // ------------------------------------------------------------ Stato
 
-  /** Una scala estratta: indice nel catalogo + tonica scritta. */
+  /** Un'estrazione: indice dell'elemento nel catalogo (campo K) + tonica scritta. */
   const state = {
-    enabled: new Set(T.FAMILIES.map((f) => f.id)),
+    enabled: new Set(def.families.map((f) => f.id)),
     fixedRoot: null, // null = casuale, altrimenti classe di altezza
     avoidRepeats: true,
     quizMode: false,
@@ -38,9 +57,9 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const s = JSON.parse(raw);
-      const validPick = (p) => p && Number.isInteger(p.scale) && scales[p.scale] && p.root &&
+      const validPick = (p) => p && Number.isInteger(p[K]) && items[p[K]] && p.root &&
         Number.isInteger(p.root.letter) && Number.isInteger(p.root.accidental);
-      if (Array.isArray(s.enabled)) state.enabled = new Set(s.enabled.filter((id) => T.family(id)));
+      if (Array.isArray(s.enabled)) state.enabled = new Set(s.enabled.filter(isFamily));
       if (s.fixedRoot === null || (Number.isInteger(s.fixedRoot) && s.fixedRoot >= 0 && s.fixedRoot < 12)) state.fixedRoot = s.fixedRoot;
       if (typeof s.avoidRepeats === 'boolean') state.avoidRepeats = s.avoidRepeats;
       if (typeof s.quizMode === 'boolean') state.quizMode = s.quizMode;
@@ -67,17 +86,17 @@
   // ------------------------------------------------------------ Logica
 
   const randInt = (n) => Math.floor(Math.random() * n);
-  const samePick = (a, b) => !!a && !!b && a.scale === b.scale && T.noteEquals(a.root, b.root);
+  const samePick = (a, b) => !!a && !!b && a[K] === b[K] && T.noteEquals(a.root, b.root);
 
   function pool() {
-    return scales.map((_, i) => i).filter((i) => state.enabled.has(scales[i].family));
+    return items.map((_, i) => i).filter((i) => state.enabled.has(items[i].family));
   }
 
   function draw(p) {
-    const scale = p[randInt(p.length)];
+    const item = p[randInt(p.length)];
     const pc = state.fixedRoot ?? randInt(12);
-    const roots = T.bestRoots(scales[scale], pc);
-    return { scale, root: roots[randInt(roots.length)] };
+    const roots = def.bestRoots(items[item], pc);
+    return { [K]: item, root: roots[randInt(roots.length)] };
   }
 
   function pickRandom() {
@@ -109,24 +128,24 @@
     renderHistory();
   }
 
-  const titleOf = (p) => `${T.noteToString(p.root, true)} ${T.prettify(scales[p.scale].name)}`;
+  const titleOf = (p) => def.title(items[p[K]], p.root);
 
   // ------------------------------------------------------------ Deep link (Docs/deep-link.md)
 
   /**
-   * Applica il link nel frammento: scala e tonica diventano la scala corrente, i parametri
+   * Applica il link nel frammento: elemento e tonica diventano l'estrazione corrente, i parametri
    * dell'esercizio vanno al pannello. Poi il frammento si toglie dall'indirizzo, così ricaricare
-   * la pagina non annulla le modifiche successive. Restituisce true se c'era una scala valida.
+   * la pagina non annulla le modifiche successive. Restituisce true se c'era un elemento valido.
    */
   function applyHash() {
     const { params } = Link.parse(location.hash);
     // Il solo tema lo gestisce theme.js: niente da applicare qui.
     if (!Object.keys(params).some((k) => k !== 'theme')) return false;
-    const scale = scaleSlugs.indexOf(params.scale);
+    const item = slugs.indexOf(params[def.linkKey]);
     const root = Link.parseNote(params.root);
     let ok = false;
-    if (scale >= 0 && root) {
-      const pick = { scale, root };
+    if (item >= 0 && root) {
+      const pick = { [K]: item, root };
       if (state.current && !samePick(state.current, pick)) {
         state.history.unshift(state.current);
         state.history.length = Math.min(state.history.length, HISTORY_LEN);
@@ -164,8 +183,8 @@
 
   function renderSettings() {
     const fam = $('#families');
-    fam.replaceChildren(...T.FAMILIES.map((f) => {
-      const count = scales.filter((s) => s.family === f.id).length;
+    fam.replaceChildren(...def.families.map((f) => {
+      const count = items.filter((s) => s.family === f.id).length;
       const input = h('input', { type: 'checkbox', value: f.id });
       input.checked = state.enabled.has(f.id);
       input.addEventListener('change', () => {
@@ -193,7 +212,7 @@
 
   function updatePool() {
     const n = pool().length;
-    $('#pool-count').textContent = `Scale nel pool: ${n}`;
+    $('#pool-count').textContent = `${def.poolLabel}: ${n}`;
     $('#draw').disabled = n === 0;
     $('#empty-pool').hidden = n !== 0;
   }
@@ -213,21 +232,18 @@
       out.replaceChildren($('#tpl-empty').content.cloneNode(true));
       return;
     }
-    const scale = scales[p.scale];
-    const notes = T.spell(scale, p.root);
-    const origin = scale.mode
-      ? `Modo ${scale.mode} della ${T.family(scale.family).parent}`
-      : 'Scala simmetrica';
+    const item = items[p[K]];
+    const v = def.view(item, p.root);
 
     const head = h('section', { class: 'card scale-head' },
-      h('p', { class: 'eyebrow' }, origin),
+      h('p', { class: 'eyebrow' }, v.eyebrow),
       h('h2', { class: 'scale-title' }, titleOf(p)),
-      scale.aka && h('p', { class: 'aka' }, 'detta anche: ', T.prettify(scale.aka)),
+      v.sub && h('p', { class: 'aka' }, v.sub),
     );
 
     if (state.quizMode && !state.revealed) {
       head.append(h('div', { class: 'quiz' },
-        h('p', { class: 'muted' }, 'Prova a ricostruire note e formula, poi controlla.'),
+        h('p', { class: 'muted' }, v.quizHint),
         h('button', {
           type: 'button', class: 'secondary-btn',
           onclick: () => { state.revealed = true; renderResult(); },
@@ -239,29 +255,22 @@
     }
 
     head.append(
-      h('ol', { class: 'notes', 'aria-label': 'Note della scala' },
-        notes.map((n, i) => h('li', { class: i === 0 ? 'is-root' : '' },
-          h('span', { class: 'note-name' }, T.noteToString(n, true)),
-          h('span', { class: 'note-degree' }, T.degreeToString(scale.degrees[i], true)),
+      h('ol', { class: 'notes', 'aria-label': v.notesLabel },
+        v.noteLabels.map((n, i) => h('li', { class: i === 0 ? 'is-root' : '' },
+          h('span', { class: 'note-name' }, n),
+          h('span', { class: 'note-degree' }, v.degreeLabels[i]),
         )),
       ),
       h('dl', { class: 'details' },
-        h('div', {}, h('dt', {}, 'Formula'), h('dd', {}, T.formula(scale, true))),
-        h('div', {}, h('dt', {}, 'Struttura'), h('dd', {}, T.stepPattern(scale))),
-        h('div', {}, h('dt', {}, 'Note'), h('dd', {}, notes.length)),
-      ),
+        v.details.map(([term, value]) => h('div', {}, h('dt', {}, term), h('dd', {}, value)))),
     );
 
-    const labels = state.dotLabel === 'degree'
-      ? scale.degrees.map((d) => T.degreeToString(d, true))
-      : notes.map((n) => T.noteToString(n, true));
+    const labels = state.dotLabel === 'degree' ? v.degreeLabels : v.noteLabels;
 
-    const patterns = G.threeNpsPatterns(scale, T.pitchClass(p.root));
     const grid = h('div', { class: 'patterns' },
-      patterns.map((pat, i) => {
-        const start = pat.startDegree;
+      v.patterns.map((pat, i) => {
         const caption = `Diteggiatura ${i + 1}`;
-        const meta = `dal grado ${T.degreeToString(scale.degrees[start], true)} (${T.noteToString(notes[start], true)}) · tasti ${pat.minFret}–${pat.maxFret}`;
+        const meta = v.patternMeta(pat);
         return h('figure', { class: 'card pattern', 'data-pattern': i },
           h('figcaption', {},
             h('span', { class: 'cap-text' }, h('strong', {}, caption), h('span', {}, meta)),
@@ -276,33 +285,34 @@
     );
 
     const segmented = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': 'Etichette dei pallini' },
-      [['degree', 'Gradi'], ['note', 'Note']].map(([v, l]) => h('button', {
+      [['degree', 'Gradi'], ['note', 'Note']].map(([val, l]) => h('button', {
         type: 'button', role: 'radio',
-        'aria-checked': String(state.dotLabel === v),
-        onclick: () => { state.dotLabel = v; save(); renderResult(); },
+        'aria-checked': String(state.dotLabel === val),
+        onclick: () => { state.dotLabel = val; save(); renderResult(); },
       }, l)),
     );
 
     const fingerings = h('section', { class: 'fingerings' },
       h('div', { class: 'section-head' },
-        h('h2', {}, 'Diteggiature 3 note per corda'),
+        h('h2', {}, v.sectionTitle),
         segmented,
       ),
-      h('p', { class: 'muted small' },
-        'Accordatura standard (EADGBE). Una diteggiatura per ogni grado di partenza sulla 6ª corda; tonica in rosso.'),
+      h('p', { class: 'muted small' }, v.sectionNote),
       grid,
     );
 
     const practiceHost = h('div', { class: 'practice-host' });
     out.replaceChildren(head, practiceHost, fingerings);
     window.Practice.mount({
-      key: `${p.scale}:${p.root.letter}:${p.root.accidental}`,
-      scale, notes, patterns,
+      key: `${p[K]}:${p.root.letter}:${p.root.accidental}`,
+      semis: v.semis, rootOnce: !!v.rootOnce, patterns: v.patterns,
+      degreeLabels: v.degreeLabels, noteLabels: v.noteLabels,
       rootPc: T.pitchClass(p.root),
       labelMode: state.dotLabel,
       container: practiceHost,
-      title: `${T.noteToString(p.root)} ${scale.name}`,
-      link: { scale: scaleSlugs[p.scale], root: Link.noteParam(p.root) },
+      title: v.plainTitle,
+      hint: v.hint,
+      link: { [def.linkKey]: slugs[p[K]], root: Link.noteParam(p.root) },
     });
   }
 
@@ -368,7 +378,7 @@
   function bind() {
     $('#draw').addEventListener('click', pickRandom);
     $('#all-families').addEventListener('click', () => {
-      state.enabled = new Set(T.FAMILIES.map((f) => f.id));
+      state.enabled = new Set(def.families.map((f) => f.id));
       renderSettings(); save();
     });
     $('#no-families').addEventListener('click', () => {
@@ -408,7 +418,7 @@
         return;
       }
       e.preventDefault();
-      // Spazio: Play/Stop con il pannello Esercizi aperto; Invio: nuova scala.
+      // Spazio: Play/Stop con il pannello Esercizi aperto; Invio: nuova estrazione.
       if (e.key === ' ' && P.isActive() && P.isOpen()) P.togglePlay();
       else pickRandom();
     });
@@ -429,4 +439,7 @@
     renderHistory();
     window.scrollTo({ top: 0 });
   });
+  }
+
+  window.App = { start };
 })();

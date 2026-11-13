@@ -78,7 +78,8 @@
   function encodeExercise(s) {
     const sc = s.scope;
     const p = {
-      preset: s.presetId, dir: s.direction, ext: s.extension, rhythm: s.rhythmId,
+      preset: s.presetId, dir: s.direction, ext: s.extension, start: s.startDegree ? s.startDegree + 1 : null,
+      rhythm: s.rhythmId,
       accent: s.accent, shift: s.accentOffset || null, pickup: s.pickup || null,
       scope: sc.kind,
     };
@@ -104,6 +105,7 @@
     if (p.preset) out.presetId = p.preset;
     if (p.dir) out.direction = p.dir;
     if (p.ext) out.extension = p.ext === 'full' ? 'full' : int(p.ext, 1, 3);
+    if (p.start !== undefined) { const n = int(p.start, 1, 7); if (n) out.startDegree = n - 1; }
     if (p.rhythm) out.rhythmId = p.rhythm;
     if (p.accent) out.accent = /^\d+$/.test(p.accent) ? int(p.accent, 2, 4) : p.accent;
     if (p.shift !== undefined) out.accentOffset = int(p.shift, 0, 3);

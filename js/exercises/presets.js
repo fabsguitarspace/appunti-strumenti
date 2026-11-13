@@ -83,10 +83,11 @@
     P('rit-gallop', 'rhythmic', 'Galoppo', { motif: [0] }, { direction: 'updown', rhythm: 'gallop', accent: 'beat' }),
   ];
 
-  const DEFAULTS = {
+  const BASE_DEFAULTS = {
     presetId: 'lin-updown',
     direction: 'updown',
     extension: 2,
+    startDegree: 0,
     rhythmId: 'eighths',
     accent: 'group',
     accentOffset: 0,
@@ -96,28 +97,41 @@
     profile: 'balanced',
   };
 
-  const preset = (id) => PRESETS.find((p) => p.id === id) || PRESETS[0];
   const rhythmDef = (id) => RHYTHMS.find((r) => r.id === id) || RHYTHMS[1];
 
-  /** Impostazioni che un preset applica quando viene scelto. */
-  function presetDefaults(id) {
-    const p = preset(id);
-    const out = { presetId: p.id, direction: p.direction || 'updown', rhythmId: p.rhythm || 'eighths' };
-    out.accent = p.accent ?? 'group';
-    out.accentOffset = p.accentOffset ?? 0;
-    out.pickup = p.pickup ?? 0;
-    return out;
+  /**
+   * Catalogo di uno strumento: categorie e preset propri, pipeline comune.
+   * `defaults` sovrascrive i valori di partenza (es. l'ambito). Ritmi comuni a tutti i cataloghi.
+   */
+  function makeCatalog(CATEGORIES, PRESETS, defaults = {}) {
+    const DEFAULTS = { ...BASE_DEFAULTS, ...defaults, scope: { ...BASE_DEFAULTS.scope, ...(defaults.scope || {}) } };
+    const preset = (id) => PRESETS.find((p) => p.id === id) || PRESETS[0];
+
+    /** Impostazioni che un preset applica quando viene scelto. */
+    function presetDefaults(id) {
+      const p = preset(id);
+      const out = { presetId: p.id, direction: p.direction || 'updown', rhythmId: p.rhythm || 'eighths' };
+      out.accent = p.accent ?? 'group';
+      out.accentOffset = p.accentOffset ?? 0;
+      out.pickup = p.pickup ?? 0;
+      return out;
+    }
+
+    /**
+     * Pipeline completa.
+     * @param ctx       Pool.context(semis, rootPc, patterns)
+     * @param settings  vedi DEFAULTS
+     * @returns { pool, events, lengthBeats, pickupBeats, error? }
+     */
+    function build(ctx, settings) {
+      const s = { ...DEFAULTS, ...settings, scope: { ...DEFAULTS.scope, ...(settings && settings.scope) } };
+      return run(ctx, s, preset(s.presetId));
+    }
+
+    return { CATEGORIES, PRESETS, DEFAULTS, RHYTHMS, preset, rhythmDef, presetDefaults, build };
   }
 
-  /**
-   * Pipeline completa.
-   * @param ctx       Pool.context(semis, rootPc, patterns)
-   * @param settings  vedi DEFAULTS
-   * @returns { pool, events, lengthBeats, pickupBeats, error? }
-   */
-  function build(ctx, settings) {
-    const s = { ...DEFAULTS, ...settings, scope: { ...DEFAULTS.scope, ...(settings && settings.scope) } };
-    const p = preset(s.presetId);
+  function run(ctx, s, p) {
     const r = rhythmDef(s.rhythmId);
     const mel = { ...p.melodic };
 
@@ -148,7 +162,7 @@
       const kOf = new Map(pool.map((q) => [q.midi, q.k]));
       notes = notes.map((n) => ({ k: kOf.get(n.midi), group: n.group, segment: n.segment }));
     } else {
-      pool = Pool.pitchPool(s.scope, ctx, s.extension);
+      pool = Pool.pitchPool(s.scope, ctx, s.extension, s.startDegree);
       notes = Melodic.melodic(pool.length, { ...mel, direction: s.direction });
     }
 
@@ -172,7 +186,44 @@
     return { pool, events, lengthBeats: rh.lengthBeats, pickupBeats: rh.pickupBeats, truncated: !!pool.truncated };
   }
 
-  const Presets = { CATEGORIES, RHYTHMS, PRESETS, DEFAULTS, preset, rhythmDef, presetDefaults, build };
+  // ------------------------------------------------------------ Catalogo dello strumento Arpeggi
+
+  const ARP_CATEGORIES = [
+    { id: 'linear', label: 'Lineari' },
+    { id: 'skips', label: 'Salti' },
+    { id: 'groups', label: 'Gruppi e rivolti' },
+    { id: 'rhythmic', label: 'Ritmici' },
+  ];
+
+  /**
+   * Preset degli arpeggi. Gli esempi tra parentesi sono su un arpeggio a 4 note (1 3 5 7, 8 = 1
+   * all'ottava): il motivo si muove sulle note dell'arpeggio, non sui gradi della scala.
+   */
+  const ARP_PRESETS = [
+    P('lin-up', 'linear', 'Ascendente', { motif: [0] }, { direction: 'up' }),
+    P('lin-down', 'linear', 'Discendente', { motif: [0] }, { direction: 'down' }),
+    P('lin-updown', 'linear', 'Ascendente e discendente', { motif: [0] }, { direction: 'updown' }),
+    P('lin-downup', 'linear', 'Discendente e ascendente', { motif: [0] }, { direction: 'downup' }),
+    P('skip-1', 'skips', 'Una nota sì e una no (1-5, 3-7 …)', { motif: [0, 2] }),
+    P('skip-1a', 'skips', 'Una sì e una no, alternati (1-5, 7-3 …)', { motif: [0, 2], shape: 'alternate' }),
+    P('skip-2', 'skips', 'Salto di due note (1-7, 3-8 …)', { motif: [0, 3] }),
+    P('mix-21', 'skips', 'Su di due, giù di una (1 5 3, 3 7 5 …)', { motif: iv([2, -1]) }, { rhythm: 'triplets' }),
+    P('grp-3', 'groups', 'Gruppi di 3 (1-3-5, 3-5-7 …)', { motif: range(3) }, { rhythm: 'triplets' }),
+    P('grp-4', 'groups', 'Rivolti in sequenza (1-3-5-7, 3-5-7-8 …)', { motif: range(4) }),
+    P('grp-3p', 'groups', 'Gruppi di 3 andata e ritorno (1-3-5-5-3-1 …)', { motif: range(3), shape: 'palindrome' }, { rhythm: 'triplets' }),
+    P('grp-4p', 'groups', 'Rivolti andata e ritorno (1-3-5-7-7-5-3-1 …)', { motif: range(4), shape: 'palindrome' }),
+    P('rit-3', 'rhythmic', 'Terzine di ottavi', { motif: [0] }, { direction: 'updown', rhythm: 'triplets', accent: 'beat' }),
+    P('rit-16', 'rhythmic', 'Quartine di sedicesimi', { motif: [0] }, { direction: 'updown', rhythm: 'sixteenths', accent: 'beat' }),
+    P('rit-swing', 'rhythmic', 'Ottavi swing', { motif: [0] }, { direction: 'updown', rhythm: 'swing', accent: 'beat' }),
+    P('rit-acc3', 'rhythmic', 'Accento ogni 3 su ottavi (3 contro 4)', { motif: [0] }, { direction: 'updown', rhythm: 'eighths', accent: 3 }),
+    P('rit-pickup', 'rhythmic', 'Rivolti in levare', { motif: range(4) }, { rhythm: 'eighths', accent: 'group', pickup: 1 }),
+  ];
+
+  const scaleCatalog = makeCatalog(CATEGORIES, PRESETS);
+  const ARPEGGI = makeCatalog(ARP_CATEGORIES, ARP_PRESETS, { scope: { kind: 'pattern' } });
+
+  /** Presets è il catalogo dello strumento Scale; Presets.ARPEGGI quello degli arpeggi. */
+  const Presets = { ...scaleCatalog, makeCatalog, ARPEGGI };
 
   if (isNode) module.exports = Presets;
   else root.Presets = Presets;

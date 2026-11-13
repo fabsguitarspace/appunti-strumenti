@@ -12,10 +12,12 @@
   const mod = (a, n) => ((a % n) + n) % n;
 
   /**
-   * Contesto della scala: semitoni dei gradi, classe di altezza della tonica e diteggiature 3NPS.
+   * Contesto della scala o dell'arpeggio: semitoni dei gradi (classi di altezza dalla tonica),
+   * classe di altezza della tonica e diteggiature. `rootOnce` (arpeggi estesi): la fondamentale
+   * suona una volta sola e sopra è sostituita dalla nona (vedi pitchPool).
    */
-  function context(semis, rootPc, patterns) {
-    return { semis, rootPc, patterns: patterns || [] };
+  function context(semis, rootPc, patterns, opts = {}) {
+    return { semis, rootPc, patterns: patterns || [], rootOnce: !!opts.rootOnce };
   }
 
   /** Indice di grado di una nota MIDI nella scala, oppure -1. */
@@ -93,20 +95,31 @@
 
   /**
    * Pool di altezze in ordine crescente: [{k, midi, degree}].
-   * extension: 1 | 2 | 3 (ottave dalla tonica più grave, ottava finale inclusa) | 'full'.
+   * extension: 1 | 2 | 3 (ottave dalla nota di partenza più grave, ottava finale inclusa) | 'full'.
+   * startDegree: indice del grado di partenza (0 = tonica; per gli arpeggi 1 = terza …).
    * Restituisce anche `truncated` se l'estensione chiesta non entra nell'ambito.
+   *
+   * Con ctx.rootOnce (arpeggi di nona, 1 3 5 7 9) la nona sta sopra la settima: la fondamentale
+   * resta solo come nota più grave e nelle ottave superiori la sostituisce la nona
+   * (C E G B♭ D · E G B♭ D …); partendo da un'altra nota la fondamentale non compare.
    */
-  function pitchPool(scope, ctx, extension = 'full') {
+  function pitchPool(scope, ctx, extension = 'full', startDegree = 0) {
     const midis = [...new Set(allowedPositions(scope, ctx).map((q) => q.midi))].sort((a, b) => a - b);
+    const start = Number.isInteger(startDegree) && startDegree > 0 && startDegree < ctx.semis.length ? startDegree : 0;
+    const second = ctx.rootOnce ? Math.min(...ctx.semis.filter((s) => s > 0)) : 0;
     let list = midis;
     let truncated = false;
     if (extension !== 'full') {
-      const lowRoot = midis.find((m) => degreeOf(m, ctx) === 0);
-      if (lowRoot != null) {
-        const top = lowRoot + 12 * Number(extension);
-        list = midis.filter((m) => m >= lowRoot && m <= top);
+      const low = midis.find((m) => degreeOf(m, ctx) === start);
+      if (low != null) {
+        const top = low + 12 * Number(extension) + (start === 0 ? second : 0);
+        list = midis.filter((m) => m >= low && m <= top);
         truncated = midis[midis.length - 1] < top;
       }
+    }
+    if (ctx.rootOnce) {
+      const anchor = extension === 'full' || start === 0 ? list.find((m) => degreeOf(m, ctx) === 0) : undefined;
+      list = list.filter((m) => (degreeOf(m, ctx) === 0 ? m === anchor : m !== anchor + second));
     }
     const pool = list.map((midi, k) => ({ k, midi, degree: degreeOf(midi, ctx) }));
     pool.truncated = truncated;

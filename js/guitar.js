@@ -55,7 +55,57 @@
     return patterns;
   }
 
-  const Guitar = { TUNING, STRING_NAMES, MAX_FRET, threeNpsPatterns };
+  /**
+   * Diteggiature in posizione per un insieme di note (arpeggi): una per ogni nota di partenza
+   * sulla 6ª corda. Ogni diteggiatura è una finestra di 5 tasti (quattro dita più
+   * un'estensione) con tutte le note dell'insieme, ciascuna altezza una volta sola, senza corde
+   * a vuoto. Fra le finestre che hanno la nota di partenza come più grave si sceglie quella con
+   * meno note in estensione.
+   * @param semis   classi di altezza dalla tonica, nell'ordine dei gradi (indice 0 = tonica)
+   * @returns come threeNpsPatterns: [{ startDegree, positions, minFret, maxFret }]
+   */
+  function positionPatterns(semis, rootPc) {
+    const pcs = semis.map((s) => mod(rootPc + s, 12));
+    const degreeAt = (string, fret) => pcs.indexOf(mod(TUNING[string] + fret, 12));
+    const SPAN = 4;
+
+    function windowAt(a, f) {
+      let positions = [];
+      for (let string = 0; string < 6; string++) {
+        for (let fret = a; fret <= a + SPAN; fret++) {
+          if (string === 0 && fret < f) continue;
+          const degree = degreeAt(string, fret);
+          if (degree >= 0) positions.push({ string, fret, degree });
+        }
+      }
+      const edge = (fret) => positions.filter((p) => p.fret === fret).length;
+      // Il lato con meno note è quello in estensione; lì si toglie l'unisono fra 3ª e 2ª corda.
+      const high = edge(a + SPAN) <= edge(a);
+      const dup = positions.some((p) => p.string === 3 && p.fret === a + SPAN) &&
+        positions.some((p) => p.string === 4 && p.fret === a);
+      if (dup) positions = positions.filter((p) => (high ? !(p.string === 3 && p.fret === a + SPAN) : !(p.string === 4 && p.fret === a)));
+      return { positions, stretch: Math.min(edge(a), edge(a + SPAN)) };
+    }
+
+    return semis.map((_, start) => {
+      const f = 1 + mod(pcs[start] - TUNING[0] - 1, 12); // tasto 1–12 della 6ª corda
+      let best = null;
+      for (let a = Math.max(1, f - SPAN); a <= f; a++) {
+        let lower = false;
+        for (let x = a; x < f; x++) if (degreeAt(0, x) >= 0) lower = true;
+        if (lower) continue;
+        const w = windowAt(a, f);
+        const rank = [w.stretch, Math.abs(a - (f - 1)), a];
+        const d = best ? rank.findIndex((v, i) => v !== best.rank[i]) : 0;
+        const better = !best || (d >= 0 && rank[d] < best.rank[d]);
+        if (better) best = { ...w, rank };
+      }
+      const frets = best.positions.map((p) => p.fret);
+      return { startDegree: start, positions: best.positions, minFret: Math.min(...frets), maxFret: Math.max(...frets) };
+    });
+  }
+
+  const Guitar = { TUNING, STRING_NAMES, MAX_FRET, threeNpsPatterns, positionPatterns };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Guitar;
   else root.Guitar = Guitar;

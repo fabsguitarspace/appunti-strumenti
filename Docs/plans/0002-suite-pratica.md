@@ -1,6 +1,6 @@
 # Piano 0002 — Suite di pratica: Scale, Arpeggi, Accordi, Progressioni
 
-- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
+- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12, fase 2 il 2026-11-14 (lato strumenti). Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
 - Decisioni: [ADR 0010](../ADR-0010-suite-di-strumenti.md); lato volume
   `appunti-pratica/Docs/adr/0005-strumenti-interattivi-nel-volume.md` e analisi 019
 
@@ -84,6 +84,17 @@ su iPhone e Android. Dettagli: analisi 019 di appunti-pratica, «Esito dell'attu
   per corda), corde scelte, tastiera intera, collegamento delle posizioni.
 - Accettazione: test sulle altezze di ogni qualità in 12 toniche, ortografia corretta (B♭7 → A♭,
   non G♯), diteggiature entro 4–5 tasti.
+
+**Esito (2026-11-14, [ADR 0011](../ADR-0011-strumento-arpeggi.md)).** `arpeggi.html` attivo nella
+pagina di scelta: 19 qualità (triadi, 9 a quattro note, 6 di nona) × 12 fondamentali, filtri per
+famiglia, quiz, cronologia; diteggiature in posizione con ascolto rapido; 17 esercizi in 4
+categorie, partenza da 3ª/5ª/7ª, tutti gli ambiti; deep link `chord`, `start`. Guscio comune
+`App.start` e pannello `Practice.configure` condivisi con Scale (nessun cambio visibile né di
+link per Scale). Test: 54 (11 nuovi in `tests/arpeggi.test.js`). Verifica nel browser a 1280 e
+375 px: deep link, riproduzione con evidenziazione, Scale invariato, nessun errore in console.
+Restano: sezione «Arpeggi» nel capitolo 11 del volume con esercizi pronti (e `arpeggi.html` in
+`PAGES` di `tests/test_strumenti_links.py`), revisione musicale delle diteggiature da parte
+dell'utente.
 
 ### 3. Accordi (eventi polifonici)
 

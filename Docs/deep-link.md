@@ -46,6 +46,8 @@ pulsante **Copia link dell'esercizio** nel pannello Esercizi produce il link del
 | `profile` | `balanced`, `horizontal`, `vertical` | distribuzione (`neck`, `strings`, `position`) |
 | `bpm` | `30`–`300` | tempo |
 
+`start` (`1`–`7`) è comune agli strumenti a note singole ma ha effetto solo negli Arpeggi.
+
 Senza `scale` e `root` validi resta la scala corrente e si applicano solo le impostazioni
 dell'esercizio.
 
@@ -53,6 +55,29 @@ Esempio: Re dorico, ottavi swing sulle corde 5 e 4 fino al 12° tasto, 120 BPM, 
 
 ```
 scale.html#v=1&scale=dorica&root=D&preset=lin-updown&rhythm=swing&scope=strings&strings=54&from=0&to=12&bpm=120&theme=dark
+```
+
+## Strumento Arpeggi (`arpeggi.html`)
+
+Stessi parametri dell'esercizio dello strumento Scale (`preset`, `dir`, `ext`, `rhythm`, `accent`,
+`shift`, `pickup`, `scope`, `from`, `to`, `strings`, `open`, `pattern`, `fret`, `profile`, `bpm`)
+con il catalogo degli arpeggi ([esercizi.md](esercizi.md#strumento-arpeggi)), più:
+
+| Chiave | Valori | Note |
+|---|---|---|
+| `chord` | identificatore della qualità, elenco sotto | serve insieme a `root` |
+| `root` | `C`, `F#`, `Bb` … | fondamentale |
+| `start` | `1`–`5` | nota di partenza nell'ordine della formula: `1` fondamentale, `2` terza (primo rivolto) …; con `ext` in ottave, non con `ext=full` né `scope=chain` |
+| `pattern` | `1`–`n` | diteggiatura in posizione (una per nota dell'arpeggio) |
+
+Identificatori delle qualità (`js/chords.js`, fissati da `tests/arpeggi.test.js`):
+`maj` `m` `dim` `aug` · `6` `7` `maj7` `m6` `m7` `mmaj7` `m7b5` `7s5` `dim7` ·
+`69` `9` `maj9` `m69` `m9` `mmaj9`
+
+Esempio: B♭7, rivolti in sequenza dalla terza, diteggiatura 1, 90 BPM:
+
+```
+arpeggi.html#v=1&chord=7&root=Bb&preset=grp-4&start=2&ext=1&scope=pattern&pattern=1&bpm=90
 ```
 
 ### Identificatori delle scale

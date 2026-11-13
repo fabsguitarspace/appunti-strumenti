@@ -2,8 +2,8 @@
 
 Strumenti web per la pratica alla chitarra, di [Fabrizio's Guitar Space](https://www.youtube.com/@fabsguitarspace),
 collegati al volume [Appunti di Pratica per Chitarra Jazz](https://appunti-pratica-per-chitarra-jazz.readthedocs.io)
-(capitolo «Strumenti per la pratica»). Oggi c'è lo strumento **Scale**; Arpeggi, Accordi e Progressioni
-sono pianificati ([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md)).
+(capitolo «Strumenti per la pratica»). Oggi ci sono gli strumenti **Scale** e **Arpeggi**; Accordi e
+Progressioni sono pianificati ([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md)).
 
 Solo HTML, CSS e JavaScript: **nessun server**, responsive e mobile-first. Repository
 [`fabsguitarspace/appunti-strumenti`](https://github.com/fabsguitarspace/appunti-strumenti), ex
@@ -14,6 +14,10 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 - **Scala casuale** tra 33 scale × 12 toniche: i 7 modi di maggiore, minore melodica, minore
   armonica e maggiore armonica, più 5 scale simmetriche. Note con ortografia corretta, formula,
   struttura T/S, diteggiature a 3 note per corda.
+- **Arpeggio casuale** tra 19 qualità × 12 fondamentali: triadi, arpeggi a 4 note (6, 7, maj7, m6,
+  m7, m(maj7), m7♭5, 7♯5, °7) e di nona (6/9, 9, maj9, m6/9, m9, m(maj9)), con ortografia corretta,
+  formula, intervalli e diteggiature in posizione (una per nota di partenza, entro 5 tasti).
+  Esercizi propri: lineari, salti, gruppi e rivolti in sequenza, ritmici; partenza da 3ª, 5ª, 7ª.
 - **Ascolto**: suono di chitarra sintetizzato (Karplus-Strong), pulsante ▶ su ogni diteggiatura.
 - **Esercizi** su tre assi combinabili ([catalogo](Docs/esercizi.md)):
   - **Cosa**: lineari, intervalli (dalla 3ª alla 7ª), sequenze (gruppi da 3 a 6, alternati),
@@ -34,13 +38,13 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 
 Online: **https://fabsguitarspace.github.io/appunti-strumenti/** (GitHub Pages dal ramo `main`).
 
-In locale apri `index.html` (scelta dello strumento) o `scale.html` nel browser: funziona anche con
+In locale apri `index.html` (scelta dello strumento), `scale.html` o `arpeggi.html` nel browser: funziona anche con
 doppio clic, da `file://`. Per clonare: `git clone https://github.com/fabsguitarspace/appunti-strumenti.git`.
 
 | Tasto | Azione |
 |---|---|
-| Invio | nuova scala casuale |
-| Spazio | Play/Stop con il pannello Esercizi aperto, altrimenti nuova scala |
+| Invio | nuova scala (o nuovo arpeggio) casuale |
+| Spazio | Play/Stop con il pannello Esercizi aperto, altrimenti nuova estrazione |
 | ← → | tempo −5 / +5 BPM |
 | Esc | chiude i pannelli laterali |
 
@@ -65,9 +69,9 @@ Vedi [Docs/architecture.md](Docs/architecture.md) per il diagramma dei moduli e
 [Docs/](Docs/README.md) per ADR, catalogo degli esercizi e piano.
 
 ```
-index.html (scelta dello strumento)  scale.html  css/style.css
-js/theme.js  js/theory.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
-js/transport.js  js/practice.js  js/app.js
+index.html (scelta dello strumento)  scale.html  arpeggi.html  css/style.css
+js/theme.js  js/theory.js  js/chords.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
+js/transport.js  js/practice.js  js/app.js (guscio comune)  js/scale.js  js/arpeggi.js
 js/exercises/  pool · melodic · rhythm · fingering · presets
 js/audio/      ks · scheduler · engine
 js/tab/        layout · render
