@@ -11,9 +11,10 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 
 ## Funzioni
 
-- **Scala casuale** tra 33 scale × 12 toniche: i 7 modi di maggiore, minore melodica, minore
-  armonica e maggiore armonica, più 5 scale simmetriche. Note con ortografia corretta, formula,
-  struttura T/S, diteggiature a 3 note per corda.
+- **Scala casuale** tra 45 scale × 12 toniche: i 7 modi di maggiore, minore melodica, minore
+  armonica e maggiore armonica, 5 scale simmetriche, 7 pentatoniche (minore, maggiore e cinque
+  alterate) e 5 scale fra blues e bebop. Note con ortografia corretta, formula, struttura T/S,
+  diteggiature a 3 note per corda; per pentatoniche e scala blues diteggiature in posizione.
 - **Arpeggio casuale** tra 19 qualità × 12 fondamentali: triadi, arpeggi a 4 note (6, 7, maj7, m6,
   m7, m(maj7), m7♭5, 7♯5, °7) e di nona (6/9, 9, maj9, m6/9, m9, m(maj9)), con ortografia corretta,
   formula, intervalli e diteggiature in posizione (una per nota di partenza, entro 5 tasti).
@@ -34,7 +35,7 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
     sequenze intervallari (alternate, motivi misti, salti crescenti); direzione; estensione in ottave;
   - **Come**: ottavi, terzine, sedicesimi, quintine, sestine, swing, galoppo, puntato, pause,
     note ripetute; accenti (sul gruppo, sul battito, ogni 2/3/4), spostamento, levare;
-  - **Dove**: tastiera intera, corde scelte (una, coppie, terne…), diteggiatura 3NPS, posizione
+  - **Dove**: tastiera intera, corde scelte (una, coppie, terne…), diteggiatura (3NPS o in posizione), posizione
     di 5 tasti, collegamento delle posizioni; distribuzione bilanciata, orizzontale o verticale.
 - **Viste sincronizzate**: tastiera con il percorso e la nota corrente, **tablatura** con ritmo e
   accenti (copia come testo, stampa), elenco dei gradi o delle note.

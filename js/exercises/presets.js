@@ -61,6 +61,8 @@
     P('seq-6', 'sequences', 'Gruppi di 6 (123456 …)', { motif: range(6) }, { rhythm: 'sextuplets' }),
     P('seq-3p', 'sequences', 'Gruppi di 3 alternati (123 321 …)', { motif: range(3), shape: 'palindrome' }, { rhythm: 'triplets' }),
     P('seq-4p', 'sequences', 'Gruppi di 4 alternati (1234 4321 …)', { motif: range(4), shape: 'palindrome' }, { rhythm: 'sixteenths' }),
+    // Formula della pagina Pentatoniche di Pratica (ADR 0014): passo su, salto su, passo giù.
+    P('seq-formula', 'sequences', 'Passo su, salto su, passo giù (1243 2354 …)', { motif: [0, 1, 3, 2] }, { rhythm: 'sixteenths' }),
     // 4. Sequenze intervallari alternate
     P('alt-3', 'intervalSeq', 'Terze alternate (1-3, 4-2 …)', { motif: [0, 2], shape: 'alternate' }),
     P('alt-3p', 'intervalSeq', 'Terze andata e ritorno (1-3-3-1 …)', { motif: [0, 2], shape: 'palindrome' }, { rhythm: 'sixteenths' }),

@@ -10,7 +10,63 @@ const spelled = (name, root) => T.spell(find(name), root).map((n) => T.noteToStr
 const C = T.note(0, 0);
 
 test('dimensione del catalogo', () => {
-  assert.equal(T.catalog().length, 4 * 7 + 5);
+  assert.equal(T.catalog().length, 4 * 7 + 5 + 7 + 5);
+});
+
+// Pentatoniche e scala blues: diteggiature in posizione (ADR 0014); le altre 3NPS.
+const positional = (s) => s.family === 'pentatonic' || (s.family === 'bluesBebop' && s.degrees.length < 7);
+
+test('pentatoniche, blues e bebop: in coda al catalogo, formule e ortografia (ADR 0014)', () => {
+  const cat = T.catalog();
+  // Le estrazioni salvate usano l'indice: le 33 scale precedenti restano ai loro posti.
+  assert.ok(cat.slice(0, 33).every((s) => !['pentatonic', 'bluesBebop'].includes(s.family)));
+  assert.ok(cat.slice(33).every((s) => ['pentatonic', 'bluesBebop'].includes(s.family)));
+  assert.equal(T.formula(find('Pentatonica minore')), '1 b3 4 5 b7');
+  assert.equal(T.formula(find('Pentatonica maggiore')), '1 2 3 5 6');
+  assert.equal(T.formula(find('Pentatonica minore 6')), '1 b3 4 5 6');
+  assert.equal(T.formula(find('Pentatonica minore 7b5')), '1 b3 4 b5 b7');
+  assert.equal(T.formula(find('Pentatonica maggiore b6')), '1 2 3 5 b6');
+  assert.equal(T.formula(find('Pentatonica maggiore b2')), '1 b2 3 5 6');
+  assert.equal(T.formula(find('Pentatonica esatonale')), '1 3 #4 #5 b7');
+  assert.equal(spelled('Pentatonica minore', T.note(5, 0)), 'A C D E G');
+  assert.equal(spelled('Pentatonica maggiore b6', T.note(2, -1)), 'Eb F G Bb Cb');
+  assert.equal(spelled('Pentatonica maggiore b2', T.note(6, -1)), 'Bb Cb D F G');
+  assert.equal(spelled('Pentatonica esatonale', T.note(6, 0)), 'B D# E# Fx A');
+  assert.equal(spelled('Scala blues', C), 'C Eb F Gb G Bb');
+  assert.equal(spelled('Bebop di dominante', C), 'C D E F G A Bb B');
+  assert.equal(spelled('Bebop maggiore', C), 'C D E F G G# A B');
+  assert.equal(spelled('Bebop minore', C), 'C D Eb F G A Bb B');
+  assert.equal(spelled('Bebop minore 3', C), 'C D Eb E F G A Bb');
+  // Bebop minore 3 di Do = bebop di dominante di Fa (stesse classi di altezza).
+  const pcs = (name, pc) => new Set(T.semitones(find(name)).map((x) => (x + pc) % 12));
+  assert.deepEqual(pcs('Bebop minore 3', 0), pcs('Bebop di dominante', 5));
+});
+
+test('pentatoniche e blues: diteggiature in posizione complete, entro cinque tasti', () => {
+  for (const s of T.catalog().filter(positional)) {
+    const semis = T.semitones(s);
+    for (let pc = 0; pc < 12; pc++) {
+      const pats = G.positionPatterns(semis, pc);
+      assert.equal(pats.length, s.degrees.length);
+      for (const p of pats) {
+        assert.ok(p.maxFret - p.minFret <= 4, `${s.name} pc${pc} span`);
+        assert.ok(p.minFret >= 1, `${s.name} pc${pc}`);
+        const degrees = new Set(p.positions.map((x) => x.degree));
+        assert.equal(degrees.size, s.degrees.length, `${s.name} pc${pc} note`);
+        for (const pos of p.positions) {
+          assert.equal((G.TUNING[pos.string] + pos.fret) % 12, (pc + semis[pos.degree]) % 12);
+        }
+      }
+    }
+  }
+  // La minore pentatonica: cinque diteggiature di dodici note, due per corda.
+  const la = G.positionPatterns(T.semitones(find('Pentatonica minore')), 9);
+  assert.deepEqual(la.map((p) => p.positions.length), [12, 12, 12, 12, 12]);
+  for (const p of la) {
+    for (let string = 0; string < 6; string++) {
+      assert.equal(p.positions.filter((x) => x.string === string).length, 2);
+    }
+  }
 });
 
 test('formule dei modi', () => {
@@ -76,7 +132,7 @@ test('Do ionica dalla tonica', () => {
 });
 
 test('tutte le diteggiature sono suonabili', () => {
-  for (const s of T.catalog()) {
+  for (const s of T.catalog().filter((x) => !positional(x))) {
     const semis = T.semitones(s);
     for (let pc = 0; pc < 12; pc++) {
       const pats = G.threeNpsPatterns(s, pc);

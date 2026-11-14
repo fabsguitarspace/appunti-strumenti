@@ -41,7 +41,7 @@ pulsante **Copia link dell'esercizio** nel pannello Esercizi produce il link del
 | `from`, `to` | `0`–`24` | tasti, per `neck` e `strings` |
 | `strings` | cifre da `1` (Mi cantino) a `6` (Mi grave), es. `65`, `321` | per `strings` |
 | `open` | `0` | esclude le corde a vuoto (`neck`, `strings`) |
-| `pattern` | `1`–`n` | diteggiatura 3NPS, per `pattern` |
+| `pattern` | `1`–`n` | diteggiatura dello strumento per quella scala, per `pattern`: 3NPS, oppure in posizione per pentatoniche e scala blues (ADR 0014) |
 | `fret` | `0`–`20` | tasto di partenza, per `position` |
 | `profile` | `balanced`, `horizontal`, `vertical` | distribuzione (`neck`, `strings`, `position`) |
 | `bpm` | `30`–`300` | tempo |
@@ -135,7 +135,10 @@ progressioni.html#v=1&prog=blues&key=F&rhythm=two-four&bass=walk&fam=shell&set=a
 `minore-melodica` `dorica-b2` `lidia-s5` `lidia-b7` `misolidia-b13` `eolia-b5` `superlocria` ·
 `minore-armonica` `locria-n6` `ionica-s5` `dorica-s4` `frigia-dominante` `lidia-s2` `diminuita-b2-b4` ·
 `maggiore-armonica` `dorica-b5` `frigia-b4` `lidia-b3` `misolidia-b2` `lidia-aumentata-s2` `locria-bb7` ·
-`esatonale` `diminuita-semitono-tono` `diminuita-tono-semitono` `aumentata` `aumentata-inversa`
+`esatonale` `diminuita-semitono-tono` `diminuita-tono-semitono` `aumentata` `aumentata-inversa` ·
+`pentatonica-minore` `pentatonica-maggiore` `pentatonica-minore-6` `pentatonica-minore-7b5`
+`pentatonica-maggiore-b6` `pentatonica-maggiore-b2` `pentatonica-esatonale` ·
+`scala-blues` `bebop-di-dominante` `bebop-maggiore` `bebop-minore` `bebop-minore-3`
 
 Derivano dai nomi del catalogo (`js/theory.js`): `#` diventa `s`, `b` resta `b`, `♮` diventa `n`.
 Rinominare una scala cambia l'identificatore: il vecchio va aggiunto a `LEGACY_SLUGS` in

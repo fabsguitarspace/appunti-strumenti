@@ -55,7 +55,7 @@ anche quelle simmetriche a 6 o 8 note.
 |---|---|---|
 | `neck` | tasti `da`–`a` | tutte le corde |
 | `strings` | insieme di 1–6 corde, tasti `da`–`a` | solo le corde scelte: singola, coppia, terna… |
-| `pattern` | diteggiatura 3NPS *n* | le sue 18 posizioni |
+| `pattern` | diteggiatura *n* dello strumento: 3NPS, o in posizione per pentatoniche e scala blues | le sue posizioni |
 | `position` | tasto di partenza *x* | finestra `x`…`x+4` su tutte le corde |
 | `chain` | sequenza di diteggiature o finestre | l'esercizio si ripete in ogni posizione, collegate (vedi 6.5) |
 
@@ -101,8 +101,11 @@ L'accento di default cade sulla prima nota di ogni coppia (`accentEvery: motif`)
 | 3.3 Gruppi di 5 | `motif [0..4]` | 12345 23456 34567 … |
 | 3.4 Gruppi di 6 | `motif [0..5]` | 123456 234567 … |
 | 3.5 Alternate asc/disc | `motif [0,1,2]`, `shape palindrome` | 123 321 234 432 345 543 … |
+| 3.6 Passo su, salto su, passo giù (`seq-formula`) | `motif [0,1,3,2]` | 1243 2354 3465 … |
 
-`palindrome` vale per qualunque gruppo (1234 4321 2345 5432 …).
+`palindrome` vale per qualunque gruppo (1234 4321 2345 5432 …). La 3.6 è la formula dell'esempio P1
+della pagina Pentatoniche di Appunti di Pratica (ADR 0014): su una pentatonica «salto» vuol dire
+saltare una nota della collezione, qualunque intervallo ne risulti.
 
 ### 4. Sequenze intervallari alternate
 

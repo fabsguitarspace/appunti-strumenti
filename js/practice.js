@@ -592,6 +592,7 @@
     const same = mounted && mounted.key === context.key;
     if (!same) { stop(); exercise = null; }
     mounted = context;
+    SCOPES = scopesFor(context.patternScope || cfg.patternScope);
     if (same) exercise = null;
     document.body.classList.add('has-transport');
     renderPanel();

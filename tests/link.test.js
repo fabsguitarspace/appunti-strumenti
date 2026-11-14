@@ -31,6 +31,25 @@ test('slug delle scale: unici, stabili, leggibili', () => {
   }
 });
 
+test('slug di pentatoniche, blues e bebop (ADR 0014)', () => {
+  const slugs = T.catalog().map((s) => L.slug(s.name));
+  assert.deepEqual(slugs.slice(33), [
+    'pentatonica-minore', 'pentatonica-maggiore', 'pentatonica-minore-6', 'pentatonica-minore-7b5',
+    'pentatonica-maggiore-b6', 'pentatonica-maggiore-b2', 'pentatonica-esatonale',
+    'scala-blues', 'bebop-di-dominante', 'bebop-maggiore', 'bebop-minore', 'bebop-minore-3',
+  ]);
+});
+
+test('preset della formula: passo su, salto su, passo giù', () => {
+  const M = require('../js/exercises/melodic.js');
+  const p = Presets.PRESETS.find((x) => x.id === 'seq-formula');
+  assert.ok(p);
+  assert.deepEqual(p.melodic.motif, [0, 1, 3, 2]);
+  // Su cinque note (una pentatonica in un'ottava più la ripetizione): gruppi dagli indici 0 e 1.
+  const k = M.melodic(6, p.melodic).map((x) => x.k);
+  assert.deepEqual(k, [0, 1, 3, 2, 1, 2, 4, 3, 2, 3, 5, 4]);
+});
+
 test('slug delle scale: i vecchi identificatori portano ai nomi nuovi', () => {
   const slugs = T.catalog().map((s) => L.slug(s.name));
   assert.equal(L.slug('Locria ♮6'), 'locria-n6');

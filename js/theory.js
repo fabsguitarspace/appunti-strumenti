@@ -82,6 +82,8 @@
     { id: 'harmonicMinor', label: 'Modi della minore armonica', parent: 'minore armonica' },
     { id: 'harmonicMajor', label: 'Modi della maggiore armonica', parent: 'maggiore armonica' },
     { id: 'symmetric', label: 'Scale simmetriche', parent: 'scale simmetriche' },
+    { id: 'pentatonic', label: 'Pentatoniche', parent: 'pentatoniche' },
+    { id: 'bluesBebop', label: 'Blues e bebop', parent: 'blues e bebop' },
   ];
 
   function family(id) {
@@ -166,12 +168,19 @@
   }
 
   function symmetric(name, aka, f) {
-    return { name, aka, family: 'symmetric', mode: null, degrees: f.split(/\s+/).map(parseDegree) };
+    return collection('symmetric', name, aka, f);
+  }
+
+  /** Scala definita dalla formula, senza modi (simmetriche, pentatoniche, blues, bebop). */
+  function collection(family, name, aka, f) {
+    return { name, aka, family, mode: null, degrees: f.split(/\s+/).map(parseDegree) };
   }
 
   /**
-   * Catalogo completo delle scale disponibili (33). I nomi dei modi delle minori seguono le
+   * Catalogo completo delle scale disponibili (45). I nomi dei modi delle minori seguono le
    * tabelle di Appunti di Teoria (capitolo «Armonia funzionale»), al femminile come in Pratica.
+   * Pentatoniche, blues e bebop (ADR 0014) seguono i nomi di Appunti di Pratica e stanno in coda:
+   * le estrazioni salvate usano l'indice nel catalogo, quindi le scale nuove si aggiungono in fondo.
    */
   function catalog() {
     return [
@@ -216,6 +225,18 @@
       symmetric('Diminuita tono-semitono', 'Ottatonica T-S', '1 2 b3 4 b5 b6 6 7'),
       symmetric('Aumentata', 'Esatonica 1½-S', '1 #2 3 5 #5 7'),
       symmetric('Aumentata inversa', 'Esatonica S-1½', '1 b2 3 4 #5 6'),
+      collection('pentatonic', 'Pentatonica minore', '', '1 b3 4 5 b7'),
+      collection('pentatonic', 'Pentatonica maggiore', '', '1 2 3 5 6'),
+      collection('pentatonic', 'Pentatonica minore 6', '', '1 b3 4 5 6'),
+      collection('pentatonic', 'Pentatonica minore 7b5', '', '1 b3 4 b5 b7'),
+      collection('pentatonic', 'Pentatonica maggiore b6', '', '1 2 3 5 b6'),
+      collection('pentatonic', 'Pentatonica maggiore b2', '', '1 b2 3 5 6'),
+      collection('pentatonic', 'Pentatonica esatonale', 'Pentatonica a toni interi', '1 3 #4 #5 b7'),
+      collection('bluesBebop', 'Scala blues', '', '1 b3 4 b5 5 b7'),
+      collection('bluesBebop', 'Bebop di dominante', '', '1 2 3 4 5 6 b7 7'),
+      collection('bluesBebop', 'Bebop maggiore', '', '1 2 3 4 5 #5 6 7'),
+      collection('bluesBebop', 'Bebop minore', 'Bebop dorica', '1 2 b3 4 5 6 b7 7'),
+      collection('bluesBebop', 'Bebop minore 3', '', '1 2 b3 3 4 5 6 b7'),
     ];
   }
 

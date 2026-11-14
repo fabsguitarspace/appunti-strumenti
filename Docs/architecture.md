@@ -11,7 +11,7 @@ puri si caricano anche da Node per i test. È una suite di strumenti con nucleo 
 | Pagina | Contenuto |
 |---|---|
 | `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi e Progressioni), ritorno al volume |
-| `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS, esercizi, trasporto |
+| `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS o in posizione (pentatoniche e blues, ADR 0014), esercizi, trasporto |
 | `arpeggi.html` | strumento Arpeggi: arpeggio casuale (19 qualità), diteggiature in posizione, rivolti, esercizi, trasporto |
 | `accordi.html` | strumento Accordi: accordo casuale, voicing shell/drop 2/drop 3/triadi in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
 | `progressioni.html` | strumento Progressioni: progressione casuale del capitolo 7, griglia, accompagnamento, basso, note guida, quiz sui gradi romani, trasporto |
@@ -49,8 +49,8 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | Modulo | Responsabilità | Node |
 |---|---|---|
 | `theme.js` | tema chiaro/scuro dal parametro `theme` del link (per scheda) | no |
-| `theory.js` | note, gradi, catalogo 33 scale, spelling enarmonico, ♭/♯ | sì |
-| `guitar.js` | diteggiature 3NPS (18 posizioni per grado di partenza) e in posizione per gli arpeggi (`positionPatterns`) | sì |
+| `theory.js` | note, gradi, catalogo 45 scale (pentatoniche, blues e bebop in coda, ADR 0014), spelling enarmonico, ♭/♯ | sì |
+| `guitar.js` | diteggiature 3NPS (18 posizioni per grado di partenza) e in posizione (`positionPatterns`) per gli arpeggi e per pentatoniche e scala blues | sì |
 | `chords.js` | 19 qualità come insiemi di gradi (più `extra()`: 7♭9 per Progressioni), ortografia, sigle, trasposizione | sì |
 | `progression.js` | griglie di accordi (ADR 0013): sigle (`parseSymbol`), ritmo armonico, trasposizione per lettere e semitoni, nome della tonalità, gradi romani; `realize` → battute e linea del tempo | sì |
 | `progressions.js` | catalogo delle 14 griglie del capitolo 7 del volume (id pubblici, sezioni, forma, centri) | sì |

@@ -23,6 +23,7 @@
 | [0011](ADR-0011-strumento-arpeggi.md) | Strumento Arpeggi: guscio comune, qualità come insiemi di gradi, diteggiature in posizione | Proposto |
 | [0012](ADR-0012-strumento-accordi.md) | Strumento Accordi: voicing generati dalle formule, conduzione delle voci, pannello proprio | Proposto |
 | [0013](ADR-0013-strumento-progressioni.md) | Strumento Progressioni: griglie del volume, ritmo d'attacco sulla linea del tempo, basso e parti audio | Proposto (non attuato) |
+| [0014](ADR-0014-scale-derivate.md) | Strumento Scale: pentatoniche, scala blues e scale bebop | Accettato |
 
 Formato: contesto, decisione, alternative scartate, conseguenze.
 Un ADR accettato non si modifica: se la decisione cambia se ne scrive uno nuovo che lo sostituisce.

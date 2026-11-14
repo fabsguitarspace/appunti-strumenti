@@ -10,6 +10,8 @@
  *   linkKey      parametro del deep link che identifica l'elemento
  *   rootParam    parametro della tonica nel link (default 'root'; Progressioni: 'key')
  *   families     [{ id, label }]; items [{ family, … }]; slugs: identificatore di ogni elemento
+ *   legacyFamilies facoltativo: famiglie esistenti prima che si salvasse l'elenco delle famiglie
+ *                conosciute; le altre, assenti da un salvataggio, si abilitano (ADR 0014)
  *   slugAliases  facoltativo: { vecchio identificatore: nuovo } per i link creati prima di un cambio di nome
  *   bestRoots(item, pc)   nomi ammessi della tonica
  *   title(item, root)     titolo mostrato
@@ -20,6 +22,7 @@
  *   view(item, root) → { eyebrow, sub, quizHint, notesLabel, notes, degreeLabels, noteLabels,
  *                        details: [[termine, valore]], semis, rootOnce, patterns, patternMeta(pat),
  *                        sectionTitle, sectionNote, plainTitle, hint(categoria),
+ *                        patternScope: nome dell'ambito «diteggiatura» per questo elemento,
  *                        facoltativi: diagram(pat, labels, title), patternCaption(pat, i),
  *                        groupLabel(pat): intestazione del gruppo di diteggiature,
  *                        quizBody: nodo mostrato nel quiz prima della soluzione;
@@ -69,7 +72,12 @@
       const s = JSON.parse(raw);
       const validPick = (p) => p && Number.isInteger(p[K]) && items[p[K]] && p.root &&
         Number.isInteger(p.root.letter) && Number.isInteger(p.root.accidental);
-      if (Array.isArray(s.enabled)) state.enabled = new Set(s.enabled.filter(isFamily));
+      if (Array.isArray(s.enabled)) {
+        state.enabled = new Set(s.enabled.filter(isFamily));
+        // Famiglie aggiunte dopo il salvataggio: abilitate, così compaiono nell'estrazione.
+        const known = Array.isArray(s.known) ? s.known : def.legacyFamilies || def.families.map((f) => f.id);
+        for (const f of def.families) if (!known.includes(f.id)) state.enabled.add(f.id);
+      }
       if (s.fixedRoot === null || (Number.isInteger(s.fixedRoot) && s.fixedRoot >= 0 && s.fixedRoot < 12)) state.fixedRoot = s.fixedRoot;
       if (typeof s.avoidRepeats === 'boolean') state.avoidRepeats = s.avoidRepeats;
       if (typeof s.quizMode === 'boolean') state.quizMode = s.quizMode;
@@ -83,6 +91,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         enabled: [...state.enabled],
+        known: def.families.map((f) => f.id),
         fixedRoot: state.fixedRoot,
         avoidRepeats: state.avoidRepeats,
         quizMode: state.quizMode,
@@ -330,6 +339,7 @@
       container: practiceHost,
       title: v.plainTitle,
       hint: v.hint,
+      patternScope: v.patternScope,
       link: { [def.linkKey]: slugs[p[K]], [ROOT_PARAM]: Link.noteParam(p.root) },
     });
   }
