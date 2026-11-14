@@ -460,10 +460,6 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
 .practice-title { font-size: 1.1rem; font-weight: 700; }
 .practice-sum { color: var(--muted); font-size: .88rem; }
 .practice-body { padding: 0 14px 16px; }
-.transport-home:empty { display: none; }
-.transport-home { margin-bottom: 12px; }
-.transport-home .transport { justify-content: flex-start; }
-.transport-home .t-play { flex: 0 1 220px; }
 .ios-hint { margin: 0 0 10px; }
 
 .axis { border-top: 1px solid var(--line); }
@@ -544,7 +540,7 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
 
 /* --- Stampa: intestazione della scala, tablatura e gradi */
 @media print {
-  .topbar, .panel, .draw-bar, .backdrop, .fingerings, .axis, .transport-home, .ios-hint,
+  .topbar, .panel, .draw-bar, .backdrop, .fingerings, .axis, .ios-hint,
   .practice-body > .field, .view-neck, .view-head .row-buttons, .practice-summary::after { display: none !important; }
   body { background: #fff; color: #000; }
   .layout { display: block; }
@@ -555,15 +551,31 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
   .tab-system { break-inside: avoid; }
 }
 
-/* Desktop: il trasporto vive nel pannello, "Scala casuale" torna pulsante esteso */
+/*
+ * Desktop: la barra con «… casuale» e il trasporto resta agganciata sotto l'intestazione mentre
+ * scorri fra tastiera, tablatura e diagrammi (su mobile la stessa barra è fissa in basso).
+ */
 @media (min-width: 1024px) {
-  body.has-transport .draw-bar { display: block; }
+  .draw-bar {
+    position: sticky; top: calc(var(--topbar-h) + env(safe-area-inset-top)); z-index: 15;
+    margin: -24px -32px 24px; padding: 12px 32px 8px;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  body.has-transport .draw-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; }
+  /* «… casuale» resta esteso ma secondario: il pulsante pieno è Play. */
   body.has-transport .draw-bar .draw-btn {
-    display: inline-flex; width: auto; padding: 0 32px; background: var(--primary); color: var(--primary-ink);
+    display: inline-flex; width: auto; min-width: 0; min-height: 48px; padding: 0 22px;
+    background: var(--surface-2); color: var(--text); font-size: 1rem;
   }
   body.has-transport .draw-bar .draw-icon { display: none; }
   body.has-transport .draw-bar .draw-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
-  body.has-transport .transport-slot { display: none; }
+  body.has-transport .transport-slot { flex: 0 1 460px; }
+  body.has-transport .draw-bar .t-play { min-height: 48px; }
+  body.has-transport .draw-bar .t-bpm, body.has-transport .draw-bar .t-tap { height: 48px; }
+  body.has-transport .draw-bar .hint { flex-basis: 100%; margin: 0; font-size: .75rem; }
 }
 
 /* ------------------------------------------------------------ Pagina di scelta degli strumenti */

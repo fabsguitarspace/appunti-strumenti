@@ -43,6 +43,9 @@ stare a portata di pollice.
 4. **Barra di trasporto**: su mobile la barra in basso diventa
    `[ 🔀 ]  [ − 120 BPM + ]  [ ▶ Play ]`. "Scala casuale" passa a pulsante icona e Play diventa
    l'azione principale. Su desktop la stessa barra compare in cima al pannello Esercizi.
+   *Modifica del 2026-11-14:* su desktop la barra resta agganciata sotto l'intestazione
+   (`position: sticky`), con «… casuale» esteso, Play, BPM e Tap: in cima al pannello scorreva via
+   mentre si guardavano tastiera, tablatura e diagrammi, e per fermare bisognava risalire.
 5. **Tastiera**: Spazio passa a Play/Stop quando il pannello Esercizi è aperto; Invio continua a
    estrarre una nuova scala; ←/→ cambiano il BPM di 5.
 6. **Estrarre una nuova scala o cambiare l'ambito ferma la riproduzione.** Cambiare le etichette

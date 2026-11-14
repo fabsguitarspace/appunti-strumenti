@@ -172,11 +172,10 @@
 
   // ------------------------------------------------------------ Trasporto
 
+  /** Il trasporto sta nella barra in cima alla pagina (in basso su mobile), sempre a portata. */
   function placeTransport() {
-    const home = mounted && mounted.container.querySelector('.transport-home');
     const slot = document.getElementById('transport-slot');
-    const target = DESKTOP.matches ? home : slot;
-    if (target && transport.el.parentNode !== target) target.appendChild(transport.el);
+    if (slot && transport.el.parentNode !== slot) slot.appendChild(transport.el);
   }
 
   function updatePlayButton() {
@@ -487,7 +486,6 @@
         h('span', { class: 'practice-title' }, 'Esercizi'),
         h('span', { class: 'practice-sum' }, summary)),
       h('div', { class: 'practice-body' },
-        h('div', { class: 'transport-home' }),
         isIOS() && h('p', { class: 'muted small ios-hint' }, 'Se non senti nulla, controlla che l\'iPhone non sia in modalità silenziosa.'),
         cosaAxis(), comeAxis(), doveAxis(), studioAxis(), opzioniAxis(),
         h('p', { class: 'practice-error', hidden: !ex.error, role: 'status' }, ex.error || ''),
@@ -550,7 +548,6 @@
     if (transport.el.parentNode) transport.el.remove();
   }
 
-  DESKTOP.addEventListener('change', () => { if (mounted) placeTransport(); });
   root.addEventListener('beforeprint', () => drawTab(720));
   root.addEventListener('afterprint', () => drawTab());
 

@@ -67,8 +67,8 @@ comunque la riproduzione).
 |---|---|---|---|---|
 | < 640px | drawer | drawer | barra in basso: 🔀 · Play · BPM | 1 colonna |
 | ≥ 640px | drawer | drawer | barra in basso (+ Tap) | 2 colonne |
-| ≥ 1024px | colonna | drawer | in cima al pannello Esercizi | 2 colonne |
-| ≥ 1280px | colonna | colonna | in cima al pannello Esercizi | 2 (3 da 1600px) |
+| ≥ 1024px | colonna | drawer | barra agganciata in alto: casuale · Play · BPM · Tap | 2 colonne |
+| ≥ 1280px | colonna | colonna | barra agganciata in alto | 2 (3 da 1600px) |
 
 Tema «Appunti» (colori del volume Appunti di Pratica), chiaro/scuro automatico o dal parametro `theme`
 del link, aree sicure iOS, target di tocco ≥ 44px, `prefers-reduced-motion`.
