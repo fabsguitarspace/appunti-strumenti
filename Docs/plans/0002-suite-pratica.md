@@ -120,7 +120,11 @@ polifonia di scheduler, tastiera e tablatura era già pronta dalla fase 0; aggiu
 6). Verifica nel browser a 1280 e 375 px: deep link, controlli del pannello, riproduzione con
 evidenziazione su diagrammi e tablatura, ascolto dei voicing, Scale e Arpeggi invariati.
 Rimandati: vocabolario per nota al canto ed esercizio «nota al canto fissa», tre voci del chord
-melody. Resta: sezione «Accordi» nel capitolo 11 del volume.
+melody.
+Lato volume (2026-11-14): sezione «Accordi» nel capitolo 11 con nove esercizi pronti, rimando nel
+capitolo 6, `accordi.html` controllato da `tests/test_strumenti_links.py`, che verifica anche che
+ogni esercizio produca voicing (analisi 019 di appunti-pratica, «Esito dell'attuazione
+(Accordi)»). Resta la revisione musicale dei voicing da parte dell'utente.
 
 ### 4. Progressioni
 
