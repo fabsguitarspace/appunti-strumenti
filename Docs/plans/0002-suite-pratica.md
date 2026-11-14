@@ -1,6 +1,6 @@
 # Piano 0002 — Suite di pratica: Scale, Arpeggi, Accordi, Progressioni
 
-- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12, fasi 2 e 3 il 2026-11-14. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
+- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12, fasi 2 e 3 il 2026-11-14; fase 4 analizzata il 2026-11-14 (ADR 0013), attuazione non avviata. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
 - Decisioni: [ADR 0010](../ADR-0010-suite-di-strumenti.md); lato volume
   `appunti-pratica/Docs/adr/0005-strumenti-interattivi-nel-volume.md` e analisi 019
 
@@ -128,16 +128,90 @@ ogni esercizio produca voicing (analisi 019 di appunti-pratica, «Esito dell'att
 
 ### 4. Progressioni
 
-- Catalogo da `7-progressioni.rst`: II–V–I maggiore e minore, turnaround, dominanti secondarie,
-  sostituzione di tritono, interscambio, diminuito di passaggio, blues, blues jazz, blues minore,
-  vamp modale, due centri, rhythm changes (A), studio AABA.
-- Tonalità casuale o scelta; BPM, loop, trainer; griglia con l'accordo corrente evidenziato.
-- Accompagnamento automatico: voicing con conduzione delle voci; ritmi (semiminime, Charleston,
-  bossa, Freddie Green); basso semplice (fondamentale/quinta, poi walking di base); volumi separati.
-- Modalità di studio: note guida (3ª e 7ª) sulla tastiera; arpeggio dell'accordo corrente;
-  scala suggerita; «suona tu» (solo basso e metronomo).
-- Accettazione: test su parsing, trasposizione e durata delle griglie; sincronizzazione a lungo
-  termine (nessuna deriva su 10 minuti di loop, come lo scheduler attuale).
+Decisioni: [ADR 0013](../ADR-0013-strumento-progressioni.md) (Proposto, 2026-11-14). Il piano
+originale prevedeva:
+
+- catalogo da `7-progressioni.rst`;
+- tonalità casuale o scelta;
+- griglia con l'accordo corrente;
+- accompagnamento con conduzione delle voci;
+- ritmi: semiminime, Charleston, bossa, Freddie Green;
+- basso semplice e volumi separati;
+- modalità note guida, arpeggio, scala suggerita e «suona tu».
+
+L'analisi del 2026-11-14 lo precisa così. Ogni passo si chiude con i test verdi e un commit; i
+passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
+
+**4.0 Preparazione (refactor, nessun cambio visibile)**
+
+- `js/panel-ui.js`: aiuti DOM e asse Opzioni estratti da `chordpractice.js` (debito dell'ADR 0012).
+- `Comping`: ritmo d'attacco sulla linea del tempo (`comp(timeline, rhythm)`); `build` di Accordi
+  la usa. Test di equivalenza: eventi identici a oggi per tutti gli esercizi, ritmi e famiglie.
+- Parti audio: campo `part` negli eventi, bus e volumi per parte in `AudioEngine`, smorzamento per
+  parte e corda; Scale, Arpeggi e Accordi restano su `comp`.
+- Accettazione: 63 test esistenti verdi, nuovo test di equivalenza; Accordi provato nel browser.
+
+**4.1 Modelli puri delle griglie**
+
+- `Chords.extra()` con `7b9`; `js/progression.js` (sigle, ritmo armonico, trasposizione, gradi
+  romani); `js/progressions.js` (14 griglie del capitolo 7, id dell'ADR 0013).
+- Test:
+  - ogni sigla del catalogo si legge;
+  - numero di battute: II–V–I 4, blues 12, AABA 32 con la forma intera, rhythm changes 16;
+  - due sigle in una battuta durano 2 + 2;
+  - trasposizione in 12 tonalità senza doppie alterazioni;
+  - esempi del capitolo: in Fa, II–V–I Gm7–C7–Fmaj7 e minore Gm7♭5–C7♭9–Fm6; tritono in Do
+    Dm7–D♭7–Cmaj7; `Em7/D` con basso Re.
+
+**4.2 Accompagnamento e basso**
+
+- Griglia → voicing con `VoiceLeading.lead` sulla forma intera, collegando anche il ritorno del
+  loop; eccezioni del capitolo (m7♭5, 7♭9, °7 e sigle con basso a quattro voci); nuovi ritmi
+  (bossa, Freddie Green, cellula «levare dell'1 e 3»).
+- `js/exercises/bass.js`: fondamentali e walking di base, deterministico.
+- Linee di note guida (3ª e 7ª) di minimo movimento.
+- Test:
+  - con gli shell il II–V–I in Do riproduce il capitolo (Fa–Fa–Mi, Do–Si–Si);
+  - ogni colpo suona l'accordo in vigore;
+  - basso: fondamentale sull'1, avvicinamento sul 4 a un semitono o un tono, registro 28–48;
+  - nessuna deriva su 10 minuti di loop a 200 BPM (clock finto, scarto massimo 1 ms).
+
+**4.3 Pagina, pannello, deep link**
+
+- `progressioni.html`, `js/progressioni.js`, `js/progpractice.js`.
+- Vista Griglia (con quiz sui gradi romani), tastiera, tablatura; assi Cosa, Come, Dove, Studio,
+  Opzioni; volumi delle parti nel trasporto.
+- Deep link `prog`, `key`, `rhythm`, `attack`, `bass`, `fam`, `set`, `from`, `to`, `study`,
+  `giri`, `form`, `bpm`; persistenza `gsp:progressioni:*`.
+- Tessera attiva nella pagina di scelta; aggiornati `architecture.md`, README e `deep-link.md`.
+- Accettazione:
+  - test di link (andata e ritorno, parametri sconosciuti ignorati);
+  - prova nel browser a 375 e 1280 px, chiaro e scuro: deep link, riproduzione con
+    evidenziazione in griglia, tastiera e tablatura, volumi, «suona tu», nessun errore in console;
+  - Scale, Arpeggi e Accordi invariati.
+
+**4.4 Lato volume (appunti-pratica, passo separato da approvare)**
+
+- Sezione «Progressioni» nel capitolo 11, con un esercizio pronto per ogni sezione del capitolo 7.
+- Rimando nel capitolo 7.
+- `tests/test_strumenti_links.py` esteso: link validi, e sigle del catalogo uguali alle griglie del
+  capitolo.
+- Analisi 019, «Esito dell'attuazione (Progressioni)».
+
+**Domande per l'autore**: decise il 2026-11-14. L'autore ha accettato le quattro proposte:
+nessuna scala suggerita, niente swing, basso in Karplus-Strong da giudicare all'ascolto, nessuna
+griglia libera nella prima versione. Il testo delle domande resta qui sotto come riferimento.
+
+1. *Scala suggerita* (prima del 4.3). Il capitolo chiede di partire dalle note degli accordi e
+   avverte di non uniformare le battute a una scala. Proposta: rimandarla e tenere note guida e
+   arpeggio. In alternativa: «una scala possibile», spenta per impostazione, con i nomi delle
+   tabelle di Teoria.
+2. *Swing* (prima del 4.2). Il capitolo usa ottavi regolari, senza swing automatico. Proposta:
+   niente swing nella prima versione. Il walking in semiminime non ne ha bisogno.
+3. *Suono del basso* (prima del 4.2). Proposta: Karplus-Strong attuale nel registro grave, da
+   giudicare all'ascolto. Se non basta, un ADR a parte.
+4. *Griglia libera* (dopo il 4.3). Proposta: non nella prima versione. Il parser la rende
+   possibile in seguito con un parametro `grid=`.
 
 ## Rinomina in `appunti-strumenti` (prima della fase 1)
 
