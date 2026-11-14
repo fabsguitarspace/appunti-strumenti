@@ -80,6 +80,21 @@
     ];
   }
 
+  /**
+   * Qualità aggiuntive, fuori dai cataloghi di Arpeggi e Accordi (ADR 0013, punto 4): servono alle
+   * griglie di Progressioni. Arpeggi e Accordi restano a 19 qualità, con deep link e conteggi invariati.
+   */
+  function extra() {
+    return [
+      Q('7b9', '7♭9', 'Settima con nona minore', 'extended', '1 3 5 b7 b9'),
+    ];
+  }
+
+  /** Catalogo e qualità aggiuntive insieme, per leggere le sigle. */
+  function all() {
+    return catalog().concat(extra());
+  }
+
   /** Classi di altezza dalla fondamentale, nell'ordine delle note dell'accordo. */
   function semitones(q) {
     return q.tones.map((t) => mod(toneSemitones(t), 12));
@@ -131,7 +146,7 @@
 
   const Chords = {
     FAMILIES, family, parseTone, toneSemitones, toneToString,
-    catalog, semitones, formula, steps, spell, bestRoots, symbol, transpose,
+    catalog, extra, all, semitones, formula, steps, spell, bestRoots, symbol, transpose,
   };
 
   if (isNode) module.exports = Chords;

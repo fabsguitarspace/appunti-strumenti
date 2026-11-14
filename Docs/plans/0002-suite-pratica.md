@@ -175,6 +175,27 @@ passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
   - esempi del capitolo: in Fa, II–V–I Gm7–C7–Fmaj7 e minore Gm7♭5–C7♭9–Fm6; tritono in Do
     Dm7–D♭7–Cmaj7; `Em7/D` con basso Re.
 
+*Esito (2026-11-14).* Fatto.
+- `Chords.extra()` con `7b9` e `Chords.all()`; `Chords.catalog()` resta a 19 qualità.
+- `js/progression.js` (`Progression`): `parseSymbol` (anche grafie ASCII, `ø`, `Δ`), `parseGrid`
+  (1, 2 o 4 accordi per battuta), `realize(prog, { key, full, ending })` → battute con etichette
+  A1/A2/B/A3 e linea del tempo `{ beat, dur, bar, section, chord }`; trasposizione per lettere e
+  semitoni senza doppie alterazioni; gradi romani dal centro.
+- Nome della tonalità da una classe di altezza: ogni sigla diversa contata una volta, più la scala
+  della tonalità (Ionica, Eolia o Dorica secondo `mode`); in parità il bemolle. Ne viene D♭ per
+  quasi tutte le griglie, F♯ per il blues di base (G♭ chiederebbe C♭7), C♯ e F♯ per il backdoor,
+  C♯m, F♯m e G♯m per le minori.
+- `js/progressions.js` (`Progressions`): 14 griglie con gli id dell'ADR. Scelte rispetto all'ADR:
+  - `due-centri` ha due sezioni con il proprio centro (`centers: { B: 'B♭' }`): i gradi delle ultime
+    quattro battute si leggono rispetto a Si♭, come chiede il capitolo;
+  - gradi a mano solo per `dominanti-secondarie` (V7/vi, V7/ii, dall'analisi del capitolo);
+  - `aaba` e `rhythm-changes`: forma breve A–B, forma intera A–A–B–A (`fullForm`); `aaba` ha il
+    finale chiuso del capitolo (`ending`: battute 31–32 Dm7 G7 | Cmaj7);
+  - turnaround e tritono tengono le due righe del capitolo (otto battute: originale e variante);
+  - `vamp-modale` e `rhythm-changes` hanno `ref: null`: nel capitolo le due sezioni non hanno
+    un'etichetta. Da aggiungere nel volume al passo 4.4.
+- Test: 74 (9 nuovi in `tests/progressioni.test.js`). Nessun cambio visibile negli strumenti.
+
 **4.2 Accompagnamento e basso**
 
 - Griglia → voicing con `VoiceLeading.lead` sulla forma intera, collegando anche il ritorno del
@@ -187,6 +208,29 @@ passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
   - ogni colpo suona l'accordo in vigore;
   - basso: fondamentale sull'1, avvicinamento sul 4 a un semitono o un tono, registro 28–48;
   - nessuna deriva su 10 minuti di loop a 200 BPM (clock finto, scarto massimo 1 ms).
+
+*Esito (2026-11-14).* Fatto.
+- `js/exercises/progcomp.js` (`ProgComp.build(realize, settings)`): voicing per gruppo di sigle
+  uguali consecutive, eventi `comp`, `bass` e `study` in un'unica sequenza; `comp: false` è «suona
+  tu», `guide: true` fa suonare piano le note guida.
+- Eccezioni con la famiglia shell: m7♭5, 7♭9 e °7 in drop 2 su 5432 o 4321 con basso **obbligato**
+  (fondamentale; terza per 7♭9, senza fondamentale), come negli esempi del capitolo (Dm7♭5 = Re La♭
+  Do Fa, G7♭9 = Si Fa La♭ Re). Il vamp (`fourVoices` nel catalogo) usa drop 2 anche per Dm7. La
+  sigla con barra ha un voicing proprio: basso sulla 5ª o 6ª corda, tre note dell'accordo superiore
+  sopra (Em7/D = Re Sol Si Mi). Le triadi usano le prime tre note della qualità.
+- Loop: diverso dall'ADR. La copia libera del primo accordo in coda poteva scegliere un voicing
+  diverso dal primo, e in tre casi il ritorno peggiorava. Ora si prova ogni voicing del primo
+  accordo come inizio e fine del ciclo e si tiene il ciclo meno costoso (`VoiceLeading.lead`
+  restituisce anche `cost`). Su tutto il catalogo × 4 famiglie il movimento del ciclo scende da 2278
+  a 1977 semitoni, mai peggiore; l'intero catalogo si calcola in circa 0,2 s.
+- Ritmi in `Comping.PROG_RHYTHMS` (l'elenco di Accordi non cambia): `offbeat` (levare dell'1 e sul 3,
+  dall'esempio del capitolo), `bossa` (due battute), `green` (Freddie Green, famiglie shell e triadi).
+- `js/exercises/bass.js` (`Bass.build`): fondamentali (1 e quinta sul 3) e walking (1, terza e
+  quinta o settima e quinta sotto, avvicinamento cromatico o di tono), registro 28–48; nel loop
+  l'ultima nota si avvicina alla prima del giro seguente. Corda e tasto sono di un basso a quattro
+  corde, solo per lo smorzamento: la tastiera del 4.3 deve mostrare solo la parte `comp`.
+- Note guida: Viterbi sulle coppie 3ª–7ª nel registro delle corde 4–2 della zona.
+- Test: 82 (8 nuovi in `tests/progcomp.test.js`). Nessun cambio visibile negli strumenti esistenti.
 
 **4.3 Pagina, pannello, deep link**
 

@@ -54,7 +54,10 @@
     let j = 0;
     last.forEach((s, k) => { if (s.cost < last[j].cost - 1e-9) j = k; });
     const out = new Array(layers.length);
+    // Costo totale del percorso scelto, per chi confronta più percorsi (loop di Progressioni).
+    const total = last[j].cost;
     for (let i = layers.length - 1; i >= 0; i--) { out[i] = layers[i][j].v; j = layers[i][j].back; }
+    out.cost = total;
     return out;
   }
 

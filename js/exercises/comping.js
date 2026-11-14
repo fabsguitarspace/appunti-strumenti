@@ -35,6 +35,23 @@
     { id: 'arp', label: 'Arpeggiato in ottavi', arp: true },
   ];
 
+  /**
+   * Ritmi in più per Progressioni (ADR 0013, punto 5), fuori dall'elenco di Accordi, che non cambia.
+   * `length`: battiti del ciclo (la bossa ne ha otto); `families`: famiglie di voicing adatte.
+   */
+  const PROG_RHYTHMS = RHYTHMS.concat([
+    // Capitolo 7, «Accompagnare: attacchi e silenzi»: un ottavo sul levare dell'1, un quarto sul 3.
+    { id: 'offbeat', label: 'Levare dell\'1 e sul 3', hits: [{ beat: 0.5, dur: 0.5 }, { beat: 2, dur: 1 }] },
+    {
+      id: 'bossa', label: 'Bossa (due battute)', length: 8,
+      hits: [{ beat: 0, dur: 1.5 }, { beat: 1.5, dur: 1.5 }, { beat: 3, dur: 1.5 }, { beat: 4.5, dur: 1.5 }, { beat: 6, dur: 2 }],
+    },
+    {
+      id: 'green', label: 'Freddie Green (quattro colpi brevi)', families: ['shell', 'triad'],
+      hits: [0, 1, 2, 3].map((b) => ({ beat: b, dur: 0.5 })),
+    },
+  ]);
+
   const ATTACKS = [['strum', 'Pennata'], ['block', 'Simultanea']];
   const STRUM = 0.018; // secondi fra una corda e la successiva nella pennata
 
@@ -188,7 +205,9 @@
     return { chords, events, lengthBeats: 4 * bars * chords.length, pickupBeats: 0 };
   }
 
-  const Comping = { EXERCISES, RHYTHMS, ATTACKS, DEFAULTS, STRUM, exercise, rhythmDef, progression, candidatesFor, comp, build };
+  const progRhythmDef = (id) => PROG_RHYTHMS.find((r) => r.id === id) || PROG_RHYTHMS[1];
+
+  const Comping = { EXERCISES, RHYTHMS, PROG_RHYTHMS, progRhythmDef, ATTACKS, DEFAULTS, STRUM, exercise, rhythmDef, progression, candidatesFor, comp, build };
 
   if (isNode) module.exports = Comping;
   else root.Comping = Comping;

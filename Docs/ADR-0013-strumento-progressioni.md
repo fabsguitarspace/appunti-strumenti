@@ -1,6 +1,6 @@
 # ADR 0013 — Strumento Progressioni: griglie del volume, ritmo d'attacco sulla linea del tempo, basso e parti audio
 
-- Stato: Proposto (2026-11-14; domande aperte decise dall'autore il 2026-11-14, attuazione non avviata)
+- Stato: Proposto (2026-11-14; domande aperte decise dall'autore il 2026-11-14, attuazione in corso: passi 4.0, 4.1 e 4.2 del piano fatti)
 - Data: 2026-11-14
 - Piano: [plans/0002-suite-pratica.md](plans/0002-suite-pratica.md), fase 4
 - Collegati: [ADR 0003](ADR-0003-sintesi-karplus-strong.md), [ADR 0004](ADR-0004-scheduler-lookahead.md),
@@ -102,6 +102,8 @@ Che cosa manca, verificato nel codice e nel capitolo:
      cambiano.
    - I voicing si scelgono con `VoiceLeading.lead` sull'intera forma. Per il loop si aggiunge in
      coda il primo accordo e poi lo si scarta, così anche il ritorno è collegato.
+     *Attuazione (4.2):* il primo accordo si fissa a ogni suo voicing come inizio e fine del ciclo e
+     si tiene il ciclo meno costoso; la copia libera poteva scegliere un voicing diverso dal primo.
    - **Eccezioni del capitolo**: con la famiglia shell, m7♭5, 7♭9, °7 e le sigle con basso usano
      drop 2 a quattro voci sulle corde 4321 o 5432. La penalità della conduzione delle voci per un
      cambio del numero di voci esiste già.

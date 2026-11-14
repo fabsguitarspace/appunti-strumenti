@@ -22,6 +22,8 @@ Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti�
 ```
                  ┌────────────────────────── puri, testati in Node ──────────────────────────┐
 theory.js ─► chords.js (Chords: qualità) ─► voicings.js (Voicings) ─► voiceleading.js (VoiceLeading)
+                         └─► progression.js (Progression: griglie) ◄── progressions.js (catalogo)
+                                   └─► exercises/progcomp.js (ProgComp) ◄── exercises/bass.js (Bass)
                                              └─► exercises/comping.js (Comping: esercizi sugli accordi)
 theory.js ─► guitar.js ─► exercises/pool.js ─► melodic.js ─► rhythm.js ─► fingering.js ─► presets.js
 (Theory)     (Guitar)     (Pool)               (Melodic)     (Rhythm)     (Fingering)     (Presets.build)
@@ -48,10 +50,14 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `theme.js` | tema chiaro/scuro dal parametro `theme` del link (per scheda) | no |
 | `theory.js` | note, gradi, catalogo 33 scale, spelling enarmonico, ♭/♯ | sì |
 | `guitar.js` | diteggiature 3NPS (18 posizioni per grado di partenza) e in posizione per gli arpeggi (`positionPatterns`) | sì |
-| `chords.js` | 19 qualità come insiemi di gradi, ortografia, sigle, trasposizione | sì |
+| `chords.js` | 19 qualità come insiemi di gradi (più `extra()`: 7♭9 per Progressioni), ortografia, sigle, trasposizione | sì |
+| `progression.js` | griglie di accordi (ADR 0013): sigle (`parseSymbol`), ritmo armonico, trasposizione per lettere e semitoni, nome della tonalità, gradi romani; `realize` → battute e linea del tempo | sì |
+| `progressions.js` | catalogo delle 14 griglie del capitolo 7 del volume (id pubblici, sezioni, forma, centri) | sì |
 | `voicings.js` | voicing shell, drop 2, drop 3, triadi generati dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
 | `voiceleading.js` | scelta dei voicing lungo una sequenza con movimento minimo (Viterbi) | sì |
 | `exercises/comping.js` | esercizi sugli accordi (rivolti, ciclo delle quarte, II–V–I) e ritmi d'accompagnamento sulla linea del tempo (`comp`, ADR 0013): ogni colpo suona l'accordo in vigore → eventi polifonici | sì |
+| `exercises/progcomp.js` | accompagnamento delle progressioni (ADR 0013): voicing con la conduzione delle voci sull'intera forma e sul ritorno del loop, eccezioni del capitolo 7 (quattro voci, sigla con barra), ritmi `PROG_RHYTHMS`, note guida → eventi `comp`, `bass`, `study` | sì |
+| `exercises/bass.js` | basso deterministico delle progressioni: fondamentali o walking di base, registro 28–48 | sì |
 | `events.js` | normalizzatore degli eventi: `notesOf` (nota singola o `notes[]`), `midisOf` | sì |
 | `exercises/pool.js` | ambiti, posizioni ammesse, pool di altezze con estensione, nota di partenza, nona al posto della fondamentale (`rootOnce`) | sì |
 | `exercises/melodic.js` | motivo × passo × direzione × forma → indici | sì |

@@ -76,9 +76,10 @@ Vedi [Docs/architecture.md](Docs/architecture.md) per il diagramma dei moduli e
 ```
 index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  css/style.css
 js/theme.js  js/theory.js  js/chords.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
+js/progression.js  js/progressions.js
 js/voicings.js  js/voiceleading.js  js/chordchart.js  js/chordpractice.js  js/accordi.js
 js/transport.js  js/practice.js  js/app.js (guscio comune)  js/scale.js  js/arpeggi.js
-js/exercises/  pool · melodic · rhythm · fingering · presets · comping
+js/exercises/  pool · melodic · rhythm · fingering · presets · comping · progcomp · bass
 js/audio/      ks · scheduler · engine
 js/tab/        layout · render
 tests/         *.test.js (node:test, nessuna dipendenza)
