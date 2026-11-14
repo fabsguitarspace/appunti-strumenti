@@ -87,18 +87,22 @@
     /**
      * Asse Opzioni del trasporto: metronomo, loop, battuta d'attacco, click, volumi, trainer.
      * @param o { settings, change(fn), onVolume(key, bus, value),
-     *            volumes: [[chiave delle impostazioni, bus, etichetta]], bpmMin, bpmMax }
+     *            volumes: [[chiave delle impostazioni, bus, etichetta]], bpmMin, bpmMax,
+     *            loop: facoltativo, il loop deciso da un altro controllo (Progressioni: «giri»);
+     *                  allora l'interruttore del loop non compare }
      */
     function optionsAxis(o) {
       const s = o.settings;
       const tr = s.trainer;
-      const sum = [s.metronome ? 'Metronomo' : 'Senza metronomo', s.loop ? 'loop' : 'una volta'];
-      if (tr.on && s.loop) sum.push(`trainer +${tr.step}`);
+      const loop = o.loop ?? s.loop;
+      const sum = [s.metronome ? 'Metronomo' : 'Senza metronomo'];
+      if (o.loop === undefined) sum.push(s.loop ? 'loop' : 'una volta');
+      if (tr.on && loop) sum.push(`trainer +${tr.step}`);
       const change = o.change;
       return axis('opzioni', 'Opzioni', sum.join(' · '),
         h('div', { class: 'toggles' },
           toggle('metronome', 'Metronomo', s.metronome, (v) => change((st) => { st.metronome = v; })),
-          toggle('loop', 'Ripeti (loop)', s.loop, (v) => change((st) => { st.loop = v; })),
+          o.loop === undefined && toggle('loop', 'Ripeti (loop)', s.loop, (v) => change((st) => { st.loop = v; })),
           toggle('countin', 'Battuta d\'attacco', s.countIn, (v) => change((st) => { st.countIn = v; }))),
         select('metromode', 'Click del metronomo', [['all', 'Tutti i battiti'], ['downbeat', 'Solo il primo battito']], s.metroMode,
           (v) => change((st) => { st.metroMode = v; })),

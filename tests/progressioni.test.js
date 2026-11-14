@@ -160,3 +160,30 @@ test('gradi romani: calcolati dal centro, a mano dove il calcolo non basta', () 
   assert.equal(T.noteToString(dc.timeline[4].chord.center, true), 'B♭');
   assert.equal(romans(P.realize(prog('vamp-modale')))[1], 'ii7/1');
 });
+
+test('giri: la forma si ripete, etichette per giro, finale chiuso solo nell\'ultimo', () => {
+  const r = P.realize(prog('aaba'), { full: true, giri: 2, ending: true });
+  assert.equal(r.bars.length, 64);
+  assert.equal(r.beats, 256);
+  assert.deepEqual([r.bars[0].label, r.bars[32].label, r.bars[48].label], ['A1', 'A1', 'B']);
+  assert.deepEqual([r.bars[0].giro, r.bars[63].giro], [0, 1]);
+  assert.deepEqual(r.bars[31].chords.map((c) => c.symbol), ['G7'], 'il primo giro resta ciclico');
+  assert.deepEqual(r.bars[63].chords.map((c) => c.symbol), ['Cmaj7']);
+  assert.equal(P.realize(prog('blues'), { giri: 4 }).bars.length, 48);
+});
+
+test('link dell\'esercizio sulle progressioni: andata e ritorno, valori non validi ignorati', () => {
+  const L = require('../js/link.js');
+  const s = {
+    rhythmId: 'two-four', attack: 'strum', bass: 'walk', family: 'shell', set: 'all', fretFrom: 1, fretTo: 10,
+    study: 'guide', giri: 2, form: 'full', ending: 'loop', bpm: 60,
+  };
+  const enc = L.encodeProgExercise(s);
+  const url = L.build({ prog: 'blues', key: 'F', ...enc });
+  assert.equal(url, '#v=1&prog=blues&key=F&rhythm=two-four&bass=walk&fam=shell&set=all&from=1&to=10&study=guide&giri=2&form=full&bpm=60');
+  const { params } = L.parse(url + '&foo=bar');
+  const dec = L.decodeProgExercise(params);
+  assert.deepEqual(dec, { rhythmId: 'two-four', bass: 'walk', family: 'shell', set: 'all', fretFrom: 1, fretTo: 10, study: 'guide', giri: 2, form: 'full', bpm: 60 });
+  assert.deepEqual(L.decodeProgExercise({ giri: '3', set: 'xyz', from: '99', end: 'closed', attack: 'block' }), { ending: 'closed', attack: 'block' });
+  assert.deepEqual(L.decodeProgExercise({ giri: '0' }), { giri: 0 });
+});

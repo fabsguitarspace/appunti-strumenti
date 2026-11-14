@@ -199,10 +199,11 @@
    *            la tonalità di riferimento del catalogo
    * opts.full  forma intera (`fullForm`, es. A–A–B–A) invece della forma breve
    * opts.ending finale chiuso (`ending` sostituisce le ultime battute dell'ultima sezione)
+   * opts.giri  quante volte si ripete la forma (predefinito 1); il finale chiuso va nell'ultimo giro
    *
    * Restituisce { key, center, bars, timeline, beats }:
-   * - bars:     [{ index, section, label, chords }] con `label` A1, A2… se la sezione si ripete;
-   * - timeline: [{ beat, dur, bar, section, chord }] con `chord` = { root, quality, bass, symbol,
+   * - bars:     [{ index, section, label, giro, chords }] con `label` A1, A2… se la sezione si ripete;
+   * - timeline: [{ beat, dur, bar, section, giro, chord }] con `chord` = { root, quality, bass, symbol,
    *             roman, center }, in pulsazioni da 0.
    */
   function realize(prog, opts = {}) {
@@ -217,19 +218,25 @@
     const form = (opts.full && prog.fullForm) || prog.form;
     const total = {};
     for (const id of form) total[id] = (total[id] || 0) + 1;
-    const seen = {};
+    const giri = Math.max(1, Math.floor(opts.giri || 1));
+    let seen = {};
 
     const centers = prog.centers || {};
     const bars = [];
     const timeline = [];
     let beat = 0;
 
-    form.forEach((id, formIndex) => {
+    // Giri: la forma si ripete; le etichette ripartono a ogni giro, il finale chiuso sta nell'ultimo.
+    const sequence = [];
+    for (let g = 0; g < giri; g++) form.forEach((id, i) => sequence.push({ id, giro: g, first: i === 0 }));
+
+    sequence.forEach(({ id, giro, first }, seqIndex) => {
+      if (first) seen = {};
       seen[id] = (seen[id] || 0) + 1;
       const label = total[id] > 1 ? id + seen[id] : id;
       const center = moveNote(parseNote(centers[id] || prog.key), letters, semis);
       let grid = parseGrid(prog.sections[id]);
-      if (opts.ending && prog.ending && formIndex === form.length - 1) {
+      if (opts.ending && prog.ending && seqIndex === sequence.length - 1) {
         const end = parseGrid(prog.ending);
         grid = grid.slice(0, grid.length - end.length).concat(end);
       }
@@ -246,9 +253,9 @@
           return c;
         });
         const index = bars.length;
-        bars.push({ index, section: id, label, chords });
+        bars.push({ index, section: id, label, giro, chords });
         chords.forEach((chord, i) => {
-          timeline.push({ beat: beat + i * dur, dur, bar: index, section: label, chord });
+          timeline.push({ beat: beat + i * dur, dur, bar: index, section: label, giro, chord });
         });
         beat += BEATS_PER_BAR;
       }

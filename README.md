@@ -2,8 +2,8 @@
 
 Strumenti web per la pratica alla chitarra, di [Fabrizio's Guitar Space](https://www.youtube.com/@fabsguitarspace),
 collegati al volume [Appunti di Pratica per Chitarra Jazz](https://appunti-pratica-per-chitarra-jazz.readthedocs.io)
-(capitolo «Strumenti per la pratica»). Oggi ci sono gli strumenti **Scale**, **Arpeggi** e **Accordi**;
-Progressioni è pianificato ([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md)).
+(capitolo «Strumenti per la pratica»). Ci sono gli strumenti **Scale**, **Arpeggi**, **Accordi** e **Progressioni**
+([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md), [ADR 0013](Docs/ADR-0013-strumento-progressioni.md)).
 
 Solo HTML, CSS e JavaScript: **nessun server**, responsive e mobile-first. Repository
 [`fabsguitarspace/appunti-strumenti`](https://github.com/fabsguitarspace/appunti-strumenti), ex
@@ -23,6 +23,11 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   5–4–3–2, drop 3 su 6–4–3–2 e 5–3–2–1, triadi strette. Esercizi: tutti i rivolti su un gruppo di
   corde, ciclo delle quarte, II–V–I, con conduzione delle voci; ritmi d'accompagnamento (minime, 2 e
   4, Charleston, arpeggiato…), accordo pennato o simultaneo.
+- **Progressione casuale** tra le 14 griglie del capitolo «Progressioni» del volume (cadenze, giri e
+  sostituzioni, blues, forme) in 12 tonalità: griglia con gradi romani, accompagnamento con conduzione
+  delle voci (anche sul ritorno del loop), basso a fondamentali o walking, note guida, «suona tu»;
+  quiz sui gradi romani, giri, forma intera e finale chiuso, volumi separati per accordi, basso, note
+  guida e metronomo.
 - **Ascolto**: suono di chitarra sintetizzato (Karplus-Strong), pulsante ▶ su ogni diteggiatura.
 - **Esercizi** su tre assi combinabili ([catalogo](Docs/esercizi.md)):
   - **Cosa**: lineari, intervalli (dalla 3ª alla 7ª), sequenze (gruppi da 3 a 6, alternati),
@@ -43,7 +48,7 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 
 Online: **https://fabsguitarspace.github.io/appunti-strumenti/** (GitHub Pages dal ramo `main`).
 
-In locale apri `index.html` (scelta dello strumento), `scale.html`, `arpeggi.html` o `accordi.html` nel browser: funziona anche con
+In locale apri `index.html` (scelta dello strumento), `scale.html`, `arpeggi.html`, `accordi.html` o `progressioni.html` nel browser: funziona anche con
 doppio clic, da `file://`. Per clonare: `git clone https://github.com/fabsguitarspace/appunti-strumenti.git`.
 
 | Tasto | Azione |
@@ -74,7 +79,7 @@ Vedi [Docs/architecture.md](Docs/architecture.md) per il diagramma dei moduli e
 [Docs/](Docs/README.md) per ADR, catalogo degli esercizi e piano.
 
 ```
-index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  css/style.css
+index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  progressioni.html  css/style.css
 js/theme.js  js/theory.js  js/chords.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
 js/progression.js  js/progressions.js
 js/voicings.js  js/voiceleading.js  js/chordchart.js  js/chordpractice.js  js/accordi.js

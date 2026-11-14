@@ -1,6 +1,6 @@
 # ADR 0013 — Strumento Progressioni: griglie del volume, ritmo d'attacco sulla linea del tempo, basso e parti audio
 
-- Stato: Proposto (2026-11-14; domande aperte decise dall'autore il 2026-11-14, attuazione in corso: passi 4.0, 4.1 e 4.2 del piano fatti)
+- Stato: Proposto (2026-11-14; domande aperte decise dall'autore il 2026-11-14, attuazione in corso: passi 4.0–4.3 del piano fatti; 4.4 sul volume da approvare)
 - Data: 2026-11-14
 - Piano: [plans/0002-suite-pratica.md](plans/0002-suite-pratica.md), fase 4
 - Collegati: [ADR 0003](ADR-0003-sintesi-karplus-strong.md), [ADR 0004](ADR-0004-scheduler-lookahead.md),

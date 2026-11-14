@@ -10,10 +10,11 @@ puri si caricano anche da Node per i test. È una suite di strumenti con nucleo 
 
 | Pagina | Contenuto |
 |---|---|
-| `index.html` | scelta dello strumento (Scale, Arpeggi e Accordi attivi; Progressioni in arrivo), ritorno al volume |
+| `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi e Progressioni), ritorno al volume |
 | `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS, esercizi, trasporto |
 | `arpeggi.html` | strumento Arpeggi: arpeggio casuale (19 qualità), diteggiature in posizione, rivolti, esercizi, trasporto |
 | `accordi.html` | strumento Accordi: accordo casuale, voicing shell/drop 2/drop 3/triadi in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
+| `progressioni.html` | strumento Progressioni: progressione casuale del capitolo 7, griglia, accompagnamento, basso, note guida, quiz sui gradi romani, trasporto |
 
 Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti»).
 
@@ -73,10 +74,12 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `link.js` | deep link: frammento ↔ parametri, note, identificatori delle scale, esercizio ([deep-link.md](deep-link.md)) | sì |
 | `transport.js` | trasporto comune: barra Play/BPM/Tap, avvio e arresto, trainer, volumi, wake lock, ciclo di evidenziazione | no |
 | `practice.js` | pannello Cosa/Come/Dove/Opzioni comune a Scale e Arpeggi (`configure`), viste, ascolto rapido, «Copia link», stampa | no |
-| `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature, cronologia, drawer, scorciatoie, lettura del link | no |
+| `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature (facoltative), cronologia, drawer, scorciatoie, lettura del link (parametro della tonica configurabile), contenuto del quiz | no |
 | `scale.js`, `arpeggi.js`, `accordi.js` | definizioni degli strumenti: catalogo, ortografia, dettagli, diteggiature o voicing, chiavi di salvataggio | no |
 | `chordpractice.js` | pannello Esercizi degli accordi: Cosa/Come/Dove/Opzioni, viste accordi/tastiera/tablatura, ascolto dei voicing, «Copia link» | no |
-| `panel-ui.js` | aiuti comuni ai pannelli (DOM, controlli, assi, asse Opzioni, copia); usato da `chordpractice.js` | no |
+| `panel-ui.js` | aiuti comuni ai pannelli (DOM, controlli, assi, asse Opzioni con loop esterno facoltativo, copia); usato da `chordpractice.js` e `progpractice.js` | no |
+| `progpractice.js` | pannello Esercizi delle progressioni: Cosa/Come/Dove/Studio/Opzioni, viste griglia/tastiera dell'accordo corrente/tablatura, volumi delle parti, «Copia link»; `gridView` serve anche al quiz | no |
+| `progressioni.js` | definizione dello strumento Progressioni (link con `key`, quiz con la griglia in gradi romani, nessuna sezione di diteggiature) | no |
 | `chordchart.js` | SVG del diagramma d'accordo verticale | no |
 
 ## Principi
@@ -146,5 +149,9 @@ al posto di `js/scale.js`.
 `accordi.html` carica `theory`, `guitar`, `chords`, `voicings`, `voiceleading`, `events`,
 `exercises/comping`, `tab/*`, `audio/*`, `fretboard`, `chordchart`, `link`, `transport`,
 `panel-ui`, `chordpractice`, `app` e `accordi` (non i moduli degli esercizi melodici né `practice.js`).
+
+`progressioni.html` carica gli stessi moduli di Accordi tranne `chordchart` e `chordpractice`, più
+`progression`, `progressions`, `exercises/bass`, `exercises/progcomp`, `progpractice` e
+`progressioni` al posto di `accordi`.
 
 `index.html` carica solo `theme.js` e il CSS.

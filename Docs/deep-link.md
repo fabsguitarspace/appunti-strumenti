@@ -103,6 +103,32 @@ Esempio: II–V–I in Do con gli shell, minime, tasti 1–10:
 accordi.html#v=1&chord=maj7&root=C&ex=ii-v-i&fam=shell&set=all&from=1&to=10&rhythm=half&bpm=80
 ```
 
+## Strumento Progressioni (`progressioni.html`)
+
+| Chiave | Valori | Note |
+|---|---|---|
+| `prog` | id del catalogo (`js/progressions.js`): `ii-v-i`, `ii-v-i-minore`, `due-centri`, `turnaround`, `dominanti-secondarie`, `tritono`, `backdoor`, `diminuito`, `blues`, `blues-jazz`, `blues-minore`, `vamp-modale`, `aaba`, `rhythm-changes` | progressione; va con `key` |
+| `key` | nota, es. `F`, `Bb`, `F#` | tonalità (al posto di `root`); il nome scritto si rispetta |
+| `rhythm` | quelli di Accordi più `offbeat`, `bossa`, `green` | ritmo d'attacco; `green` solo con `fam=shell` o `triad` |
+| `attack` | `strum`, `block` | pennata o simultaneo (omesso = pennata) |
+| `bass` | `off`, `roots`, `walk` | basso spento, fondamentali, walking di base |
+| `fam` | `shell`, `drop2`, `drop3`, `triad` | famiglia di voicing; con `shell` le eccezioni del capitolo usano quattro voci |
+| `set` | `all` oppure corde da chitarrista, es. `543`, `4321` | insieme di corde della famiglia |
+| `from`, `to` | `1`–`20` | zona di tasti |
+| `study` | `grid`, `guide`, `arp`, `play` | griglia, note guida, arpeggio dell'accordo, «suona tu» |
+| `giri` | `1`, `2`, `4`, `0` | giri della forma; `0` = continuo (loop) |
+| `form` | `full` | forma intera A–A–B–A (solo `aaba` e `rhythm-changes`; omesso = forma breve) |
+| `end` | `closed` | finale chiuso nell'ultimo giro (solo `aaba`, non con `giri=0`) |
+| `bpm` | `30`–`300` | tempo |
+
+Codice: `Link.encodeProgExercise`/`decodeProgExercise`; test in `tests/progressioni.test.js`.
+
+Esempio: blues di base in Fa, sul 2 e sul 4, walking, note guida, due giri a 60 BPM:
+
+```
+progressioni.html#v=1&prog=blues&key=F&rhythm=two-four&bass=walk&fam=shell&set=all&from=1&to=10&study=guide&giri=2&bpm=60
+```
+
 ### Identificatori delle scale
 
 `ionica` `dorica` `frigia` `lidia` `misolidia` `eolia` `locria` ·

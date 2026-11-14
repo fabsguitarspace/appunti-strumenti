@@ -153,9 +153,43 @@
     return out;
   }
 
+  // ------------------------------------------------------------ Esercizio (strumento Progressioni)
+
+  /**
+   * Impostazioni dell'esercizio sulle progressioni → parametri del link (ADR 0013, punto 10).
+   * `giri=0` è il loop continuo; `end=closed` il finale chiuso (solo dove il catalogo lo prevede).
+   */
+  function encodeProgExercise(s) {
+    return {
+      rhythm: s.rhythmId, attack: s.attack === 'block' ? 'block' : null, bass: s.bass,
+      fam: s.family, set: s.set, from: s.fretFrom, to: s.fretTo, study: s.study,
+      giri: s.giri, form: s.form === 'full' ? 'full' : null, end: s.ending === 'closed' ? 'closed' : null,
+      bpm: s.bpm,
+    };
+  }
+
+  /** Parametri del link → impostazioni parziali dell'esercizio sulle progressioni. */
+  function decodeProgExercise(p) {
+    const out = {};
+    if (p.rhythm) out.rhythmId = p.rhythm;
+    if (p.attack) out.attack = p.attack;
+    if (p.bass) out.bass = p.bass;
+    if (p.fam) out.family = p.fam;
+    if (p.set && (p.set === 'all' || /^[1-6]{3,4}$/.test(p.set))) out.set = p.set;
+    if (p.from !== undefined) out.fretFrom = int(p.from, 1, 20);
+    if (p.to !== undefined) out.fretTo = int(p.to, 1, 20);
+    if (p.study) out.study = p.study;
+    if (p.giri !== undefined) { const g = int(p.giri, 0, 4); if (g !== undefined && g !== 3) out.giri = g; }
+    if (p.form) out.form = p.form === 'full' ? 'full' : 'short';
+    if (p.end) out.ending = p.end === 'closed' ? 'closed' : 'loop';
+    if (p.bpm !== undefined) out.bpm = int(p.bpm, 1, 999);
+    for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k];
+    return out;
+  }
+
   const Link = {
     VERSION, parse, build, themeOf, slug, parseNote, noteParam, encodeExercise, decodeExercise,
-    encodeChordExercise, decodeChordExercise,
+    encodeChordExercise, decodeChordExercise, encodeProgExercise, decodeProgExercise,
   };
 
   if (isNode) module.exports = Link;

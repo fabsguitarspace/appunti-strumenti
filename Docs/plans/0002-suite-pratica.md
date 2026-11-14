@@ -246,6 +246,29 @@ passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
     evidenziazione in griglia, tastiera e tablatura, volumi, «suona tu», nessun errore in console;
   - Scale, Arpeggi e Accordi invariati.
 
+*Esito (2026-11-14).* Fatto.
+- `progressioni.html`, `js/progressioni.js`, `js/progpractice.js`; tessera attiva in `index.html`.
+- Guscio: `App` accetta `rootParam` (il link usa `key=`), `quizBody` (nel quiz la griglia in gradi
+  romani, senza sigle) e `patterns: null` (nessuna sezione di diteggiature: i voicing dipendono dal
+  pannello). `PanelUI.optionsAxis` accetta `loop` esterno: in Progressioni lo decidono i giri
+  (`0` = continuo), e l'interruttore del loop non compare. Scale, Arpeggi e Accordi non cambiano.
+- `Progression.realize` accetta `giri`: la forma si ripete, le etichette ripartono a ogni giro
+  («Giro 2» in griglia), il finale chiuso va nell'ultimo.
+- Viste: griglia (righe di quattro battute, A1/A2/B/A3, gradi romani a scelta, note guida sotto le
+  sigle), tastiera dell'**accordo corrente** (voicing, note guida o note dell'accordo nella zona,
+  secondo lo studio) ridisegnata al cambio d'accordo, tablatura della sola parte `comp`.
+- Deep link: oltre ai parametri del piano, `end=closed` per il finale chiuso
+  ([deep-link.md](../deep-link.md)). «Nel volume» punta all'etichetta della sezione del capitolo 7
+  (verificate le 12 etichette sul sito pubblicato).
+- Test: 84 (link andata e ritorno con parametri sconosciuti ignorati; giri).
+- Nel browser (1280 px scuro, 375 px chiaro): deep link del blues in Fa con note guida e due giri,
+  riproduzione con evidenziazione di griglia e tastiera, Stop, modalità griglia/suona tu, drop 2
+  (Freddie Green escluso), quiz con soli gradi, estrazioni e cronologia, AABA in Si♭ con forma
+  intera e finale chiuso senza scorrimento orizzontale; Scale, Arpeggi e Accordi con i loro deep
+  link. Nessun errore in console.
+- Non verificato: l'ascolto (bilanciamento dei volumi e suono del basso Karplus-Strong, domanda 3
+  dell'autore), il pulsante «Copia link» (gli appunti non sono accessibili nel browser di prova).
+
 **4.4 Lato volume (appunti-pratica, passo separato da approvare)**
 
 - Sezione «Progressioni» nel capitolo 11, con un esercizio pronto per ogni sezione del capitolo 7.

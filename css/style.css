@@ -612,3 +612,39 @@ a.tool-card:hover { background: var(--surface-2); }
 @media (min-width: 1280px) {
   .patterns.patterns-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* ------------------------------------------------------------ Progressioni (ADR 0013) */
+
+.prog-grid { display: grid; gap: 6px; }
+.pg-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-left: 2px solid var(--text); }
+.pg-bar {
+  position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  min-height: 52px; padding: 16px 6px 6px; border-right: 2px solid var(--text);
+}
+.pg-sec {
+  position: absolute; top: 2px; left: 6px; font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+  color: var(--accent); white-space: nowrap;
+}
+.pg-chords { display: flex; gap: 4px; min-width: 0; }
+.pg-chord {
+  flex: 1 1 0; min-width: 0; display: grid; justify-items: center; padding: 3px 2px; border-radius: 8px;
+  text-align: center; line-height: 1.2;
+}
+.pg-sym { font-weight: 650; font-size: .95rem; overflow-wrap: anywhere; }
+.pg-roman { font-size: .8rem; color: var(--muted); font-family: var(--mono); }
+.pg-chord:not(:has(.pg-sym)) .pg-roman { font-size: .95rem; color: var(--text); font-weight: 600; }
+.pg-guide { font-size: .74rem; color: var(--note); }
+.pg-chord.is-playing { background: var(--playing); color: var(--playing-ink); }
+.pg-chord.is-playing .pg-roman, .pg-chord.is-playing .pg-guide { color: var(--playing-ink); }
+.quiz .prog-grid { margin: 12px 0; }
+.neck-chord { font-weight: 600; }
+@media (max-width: 419px) {
+  .pg-bar { padding-left: 3px; padding-right: 3px; }
+  .pg-sym { font-size: .82rem; }
+  .pg-roman { font-size: .72rem; }
+  .pg-chords { flex-direction: column; gap: 2px; }
+}
+@media print {
+  .view-grid { break-inside: avoid; }
+  .pg-chord.is-playing { background: none; color: inherit; }
+}

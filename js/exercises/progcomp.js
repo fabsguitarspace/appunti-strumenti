@@ -258,7 +258,7 @@
     return k;
   }
 
-  const ProgComp = { DEFAULTS, FOUR_VOICES, triadOf, slashVoicings, candidates, guideTones, guideLines, build };
+  const ProgComp = { DEFAULTS, FOUR_VOICES, triadOf, slashVoicings, candidates, guideTones, guideLines, placeGuide, build };
 
   if (isNode) module.exports = ProgComp;
   else root.ProgComp = ProgComp;

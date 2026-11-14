@@ -8,6 +8,7 @@
  *   storageKey   chiave localStorage dello strumento
  *   itemKey      nome del campo dell'elemento nelle estrazioni salvate ('scale', 'chord')
  *   linkKey      parametro del deep link che identifica l'elemento
+ *   rootParam    parametro della tonica nel link (default 'root'; Progressioni: 'key')
  *   families     [{ id, label }]; items [{ family, … }]; slugs: identificatore di ogni elemento
  *   slugAliases  facoltativo: { vecchio identificatore: nuovo } per i link creati prima di un cambio di nome
  *   bestRoots(item, pc)   nomi ammessi della tonica
@@ -20,7 +21,9 @@
  *                        details: [[termine, valore]], semis, rootOnce, patterns, patternMeta(pat),
  *                        sectionTitle, sectionNote, plainTitle, hint(categoria),
  *                        facoltativi: diagram(pat, labels, title), patternCaption(pat, i),
- *                        groupLabel(pat): intestazione del gruppo di diteggiature }
+ *                        groupLabel(pat): intestazione del gruppo di diteggiature,
+ *                        quizBody: nodo mostrato nel quiz prima della soluzione;
+ *                        patterns null: nessuna sezione di diteggiature }
  */
 (function () {
   'use strict';
@@ -35,6 +38,7 @@
   const HISTORY_LEN = 12;
   const STORAGE_KEY = def.storageKey;
   const K = def.itemKey;
+  const ROOT_PARAM = def.rootParam || 'root';
   const DESKTOP = window.matchMedia('(min-width: 1024px)');
   const WIDE = window.matchMedia('(min-width: 1280px)');
 
@@ -149,7 +153,7 @@
     if (!Object.keys(params).some((k) => k !== 'theme')) return false;
     const key = params[def.linkKey];
     const item = slugs.indexOf((def.slugAliases && def.slugAliases[key]) || key);
-    const root = Link.parseNote(params.root);
+    const root = Link.parseNote(params[ROOT_PARAM]);
     let ok = false;
     if (item >= 0 && root) {
       const pick = { [K]: item, root };
@@ -251,6 +255,7 @@
     if (state.quizMode && !state.revealed) {
       head.append(h('div', { class: 'quiz' },
         h('p', { class: 'muted' }, v.quizHint),
+        v.quizBody || null,
         h('button', {
           type: 'button', class: 'secondary-btn',
           onclick: () => { state.revealed = true; renderResult(); },
@@ -276,7 +281,7 @@
 
     const diagram = v.diagram || F.render;
     let group = null;
-    const grid = h('div', { class: 'patterns' + (v.diagram ? ' patterns-compact' : '') },
+    const grid = v.patterns && h('div', { class: 'patterns' + (v.diagram ? ' patterns-compact' : '') },
       v.patterns.flatMap((pat, i) => {
         const caption = v.patternCaption ? v.patternCaption(pat, i) : `Diteggiatura ${i + 1}`;
         const meta = v.patternMeta(pat);
@@ -304,7 +309,7 @@
       }, l)),
     );
 
-    const fingerings = h('section', { class: 'fingerings' },
+    const fingerings = v.patterns && h('section', { class: 'fingerings' },
       h('div', { class: 'section-head' },
         h('h2', {}, v.sectionTitle),
         segmented,
@@ -314,7 +319,7 @@
     );
 
     const practiceHost = h('div', { class: 'practice-host' });
-    out.replaceChildren(head, practiceHost, fingerings);
+    out.replaceChildren(...[head, practiceHost, fingerings].filter(Boolean));
     P.mount({
       key: `${p[K]}:${p.root.letter}:${p.root.accidental}`,
       item, root: p.root,
@@ -325,7 +330,7 @@
       container: practiceHost,
       title: v.plainTitle,
       hint: v.hint,
-      link: { [def.linkKey]: slugs[p[K]], root: Link.noteParam(p.root) },
+      link: { [def.linkKey]: slugs[p[K]], [ROOT_PARAM]: Link.noteParam(p.root) },
     });
   }
 
