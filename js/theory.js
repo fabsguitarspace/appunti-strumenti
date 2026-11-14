@@ -169,7 +169,10 @@
     return { name, aka, family: 'symmetric', mode: null, degrees: f.split(/\s+/).map(parseDegree) };
   }
 
-  /** Catalogo completo delle scale disponibili (33). */
+  /**
+   * Catalogo completo delle scale disponibili (33). I nomi dei modi delle minori seguono le
+   * tabelle di Appunti di Teoria (capitolo «Armonia funzionale»), al femminile come in Pratica.
+   */
   function catalog() {
     return [
       ...modesOf('major', [0, 2, 4, 5, 7, 9, 11], [
@@ -184,24 +187,24 @@
       ...modesOf('melodic', [0, 2, 3, 5, 7, 9, 11], [
         ['Minore melodica', 'Minore jazz, Ionica b3'],
         ['Dorica b2', 'Frigia #6'],
-        ['Lidia aumentata', 'Lidia #5'],
-        ['Lidia dominante', 'Lidia b7, Acustica'],
-        ['Misolidia b6', 'Eolia dominante'],
-        ['Locria #2', 'Semidiminuita, Eolia b5'],
+        ['Lidia #5', 'Lidia aumentata'],
+        ['Lidia b7', 'Misolidia #11, Lidia dominante, Acustica'],
+        ['Misolidia b13', 'Misolidia b6, Eolia dominante'],
+        ['Eolia b5', 'Locria ♮2, Semidiminuita'],
         ['Superlocria', 'Alterata'],
       ]),
       ...modesOf('harmonicMinor', [0, 2, 3, 5, 7, 8, 11], [
         ['Minore armonica', 'Eolia #7'],
-        ['Locria #6', ''],
+        ['Locria ♮6', ''],
         ['Ionica #5', 'Ionica aumentata'],
         ['Dorica #4', 'Rumena'],
         ['Frigia dominante', 'Spagnola, Misolidia b9 b13'],
         ['Lidia #2', ''],
-        ['Superlocria bb7', 'Ultralocria'],
+        ['Diminuita b2 b4', 'Superlocria bb7, Ultralocria'],
       ]),
       ...modesOf('harmonicMajor', [0, 2, 4, 5, 7, 8, 11], [
         ['Maggiore armonica', 'Ionica b6'],
-        ['Dorica b5', 'Locria #2 #6'],
+        ['Dorica b5', 'Locria ♮2 ♮6'],
         ['Frigia b4', 'Alterata #5'],
         ['Lidia b3', 'Minore melodica #4'],
         ['Misolidia b2', ''],
@@ -216,6 +219,19 @@
     ];
   }
 
+  /**
+   * Identificatori dei link derivati dai nomi precedenti all'allineamento con Teoria
+   * (14 novembre 2026): vecchio → nuovo, perché i link già condivisi continuino a funzionare.
+   */
+  const LEGACY_SLUGS = {
+    'lidia-aumentata': 'lidia-s5',
+    'lidia-dominante': 'lidia-b7',
+    'misolidia-b6': 'misolidia-b13',
+    'locria-s2': 'eolia-b5',
+    'locria-s6': 'locria-n6',
+    'superlocria-bb7': 'diminuita-b2-b4',
+  };
+
   /** Sostituisce b/# nei nomi testuali (es. "Dorica b2") con ♭/♯. */
   function prettify(text) {
     return text.replace(/(^|[\s(])(bb|b|#)(?=\d)/g, (_, pre, acc) =>
@@ -223,7 +239,7 @@
   }
 
   const Theory = {
-    LETTERS, LETTER_PC, FAMILIES,
+    LETTERS, LETTER_PC, FAMILIES, LEGACY_SLUGS,
     note, pitchClass, noteEquals, noteToString,
     degree, degreeSemitones, parseDegree, degreeToString,
     family, semitones, steps, formula, stepPattern,

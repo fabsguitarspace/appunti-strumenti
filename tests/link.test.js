@@ -25,9 +25,18 @@ test('slug delle scale: unici, stabili, leggibili', () => {
   const slugs = T.catalog().map((s) => L.slug(s.name));
   assert.equal(new Set(slugs).size, slugs.length);
   // Questi identificatori compaiono nei link del volume: non devono cambiare.
-  for (const s of ['ionica', 'dorica', 'misolidia', 'minore-melodica', 'superlocria', 'lidia-dominante',
-    'locria-s2', 'minore-armonica', 'frigia-dominante', 'esatonale', 'diminuita-semitono-tono']) {
+  for (const s of ['ionica', 'dorica', 'misolidia', 'minore-melodica', 'superlocria', 'lidia-b7',
+    'eolia-b5', 'minore-armonica', 'frigia-dominante', 'esatonale', 'diminuita-semitono-tono']) {
     assert.ok(slugs.includes(s), s);
+  }
+});
+
+test('slug delle scale: i vecchi identificatori portano ai nomi nuovi', () => {
+  const slugs = T.catalog().map((s) => L.slug(s.name));
+  assert.equal(L.slug('Locria ♮6'), 'locria-n6');
+  for (const [old, now] of Object.entries(T.LEGACY_SLUGS)) {
+    assert.ok(!slugs.includes(old), old);   // nessun conflitto con un identificatore attuale
+    assert.ok(slugs.includes(now), now);
   }
 });
 

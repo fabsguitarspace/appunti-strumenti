@@ -9,6 +9,7 @@
  *   itemKey      nome del campo dell'elemento nelle estrazioni salvate ('scale', 'chord')
  *   linkKey      parametro del deep link che identifica l'elemento
  *   families     [{ id, label }]; items [{ family, … }]; slugs: identificatore di ogni elemento
+ *   slugAliases  facoltativo: { vecchio identificatore: nuovo } per i link creati prima di un cambio di nome
  *   bestRoots(item, pc)   nomi ammessi della tonica
  *   title(item, root)     titolo mostrato
  *   poolLabel             es. 'Scale nel pool'
@@ -146,7 +147,8 @@
     const { params } = Link.parse(location.hash);
     // Il solo tema lo gestisce theme.js: niente da applicare qui.
     if (!Object.keys(params).some((k) => k !== 'theme')) return false;
-    const item = slugs.indexOf(params[def.linkKey]);
+    const key = params[def.linkKey];
+    const item = slugs.indexOf((def.slugAliases && def.slugAliases[key]) || key);
     const root = Link.parseNote(params.root);
     let ok = false;
     if (item >= 0 && root) {

@@ -16,12 +16,17 @@ test('dimensione del catalogo', () => {
 test('formule dei modi', () => {
   assert.equal(T.formula(find('Dorica')), '1 2 b3 4 5 6 b7');
   assert.equal(T.formula(find('Superlocria')), '1 b2 b3 b4 b5 b6 b7');
-  assert.equal(T.formula(find('Lidia dominante')), '1 2 3 #4 5 6 b7');
+  assert.equal(T.formula(find('Lidia b7')), '1 2 3 #4 5 6 b7');
   assert.equal(T.formula(find('Frigia dominante')), '1 b2 3 4 5 b6 b7');
-  assert.equal(T.formula(find('Superlocria bb7')), '1 b2 b3 b4 b5 b6 bb7');
+  assert.equal(T.formula(find('Diminuita b2 b4')), '1 b2 b3 b4 b5 b6 bb7');
   assert.equal(T.formula(find('Lidia aumentata #2')), '1 #2 3 #4 #5 6 7');
   assert.equal(T.formula(find('Dorica b5')), '1 2 b3 4 b5 6 b7');
   assert.equal(T.formula(find('Locria bb7')), '1 b2 b3 4 b5 b6 bb7');
+  // Nomi allineati alle tabelle di Teoria (14 novembre 2026).
+  assert.equal(T.formula(find('Lidia #5')), '1 2 3 #4 #5 6 7');
+  assert.equal(T.formula(find('Misolidia b13')), '1 2 3 4 5 b6 b7');
+  assert.equal(T.formula(find('Eolia b5')), '1 2 b3 4 b5 b6 b7');
+  assert.equal(T.formula(find('Locria ♮6')), '1 b2 b3 4 b5 6 b7');
 });
 
 test('ortografia', () => {
@@ -57,7 +62,7 @@ test('la tonica migliore preferisce la scrittura leggibile', () => {
 test('notazione tipografica', () => {
   assert.equal(T.noteToString(T.note(1, -1), true), 'D♭');
   assert.equal(T.noteToString(T.note(3, 2), true), 'F♯♯');
-  assert.equal(T.formula(find('Superlocria bb7'), true), '1 ♭2 ♭3 ♭4 ♭5 ♭6 ♭♭7');
+  assert.equal(T.formula(find('Diminuita b2 b4'), true), '1 ♭2 ♭3 ♭4 ♭5 ♭6 ♭♭7');
   assert.equal(T.prettify('Lidia aumentata #2'), 'Lidia aumentata ♯2');
   assert.equal(T.prettify('Spagnola, Misolidia b9 b13'), 'Spagnola, Misolidia ♭9 ♭13');
   assert.equal(T.prettify('Superlocria bb7'), 'Superlocria ♭♭7');

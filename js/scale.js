@@ -15,6 +15,7 @@
     families: T.FAMILIES,
     items: scales,
     slugs: scales.map((sc) => Link.slug(sc.name)),
+    slugAliases: T.LEGACY_SLUGS,
     bestRoots: (scale, pc) => T.bestRoots(scale, pc),
     title: (scale, root) => `${T.noteToString(root, true)} ${T.prettify(scale.name)}`,
     poolLabel: 'Scale nel pool',
