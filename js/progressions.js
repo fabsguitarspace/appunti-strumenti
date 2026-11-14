@@ -4,7 +4,7 @@
  * riferimento del capitolo. Modulo puro.
  *
  * Gli `id` compaiono nei deep link (`prog=`) e nei test del volume: non si rinominano.
- * `ref` è l'etichetta della sezione del volume (null se la sezione non ne ha una).
+ * `ref` è l'etichetta della sezione del volume (capitolo 7).
  * Se il capitolo cambia, il catalogo va aggiornato a mano: lo controlla
  * `tests/test_strumenti_links.py` del volume.
  */
@@ -58,7 +58,7 @@
         { A: '| Cm6 | Cm6 | Cm6 | Cm6 | Fm7 | Fm7 | Cm6 | Cm6 | A♭7 | G7 | Cm6 | G7 |' }, ['A']),
 
       // Forme
-      P('vamp-modale', 'forme', 'Vamp modale', 'D', 'dorian', null,
+      P('vamp-modale', 'forme', 'Vamp modale', 'D', 'dorian', 'progressioni-vamp',
         { A: '| Dm7 | Em7/D | Dm7 | Em7/D | Dm7 | Em7/D | Dm7 | Em7/D |' }, ['A'],
         // Capitolo 7, riga 37: il vamp usa voicing a quattro note anche con gli shell.
         { fourVoices: true }),
@@ -70,7 +70,7 @@
         ['A', 'B'],
         // Forma intera A–A–B–A; per un finale le battute 31–32 diventano Dm7 G7 | Cmaj7.
         { fullForm: ['A', 'A', 'B', 'A'], ending: '| Dm7 G7 | Cmaj7 |' }),
-      P('rhythm-changes', 'forme', 'Rhythm changes', 'C', 'major', null,
+      P('rhythm-changes', 'forme', 'Rhythm changes', 'C', 'major', 'progressioni-rhythm-changes',
         {
           A: '| Cmaj7 A7 | Dm7 G7 | Em7 A7 | Dm7 G7 | C7 | F7 F♯°7 | Cmaj7 A7 | Dm7 G7 |',
           B: '| E7 | E7 | A7 | A7 | D7 | D7 | G7 | G7 |',

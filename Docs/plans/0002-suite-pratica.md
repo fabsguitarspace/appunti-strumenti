@@ -193,7 +193,7 @@ passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
     finale chiuso del capitolo (`ending`: battute 31–32 Dm7 G7 | Cmaj7);
   - turnaround e tritono tengono le due righe del capitolo (otto battute: originale e variante);
   - `vamp-modale` e `rhythm-changes` hanno `ref: null`: nel capitolo le due sezioni non hanno
-    un'etichetta. Da aggiungere nel volume al passo 4.4.
+    un'etichetta. Aggiunte nel volume al passo 4.4 (`progressioni-vamp`, `progressioni-rhythm-changes`).
 - Test: 74 (9 nuovi in `tests/progressioni.test.js`). Nessun cambio visibile negli strumenti.
 
 **4.2 Accompagnamento e basso**
@@ -269,13 +269,20 @@ passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
 - Non verificato: l'ascolto (bilanciamento dei volumi e suono del basso Karplus-Strong, domanda 3
   dell'autore), il pulsante «Copia link» (gli appunti non sono accessibili nel browser di prova).
 
-**4.4 Lato volume (appunti-pratica, passo separato da approvare)**
+**4.4 Lato volume (appunti-pratica)**
 
 - Sezione «Progressioni» nel capitolo 11, con un esercizio pronto per ogni sezione del capitolo 7.
 - Rimando nel capitolo 7.
 - `tests/test_strumenti_links.py` esteso: link validi, e sigle del catalogo uguali alle griglie del
   capitolo.
 - Analisi 019, «Esito dell'attuazione (Progressioni)».
+
+*Esito (2026-11-14).* Fatto, approvato dall'autore insieme al rilascio su `main`.
+- Capitolo 11: sezione «Progressioni» con sedici esercizi pronti (uno per sezione del capitolo 7,
+  più un II–V–I trasportato). Capitolo 7: etichette per vamp e rhythm changes, ora anche nei `ref`
+  del catalogo, e rimando allo strumento.
+- `tests/test_strumenti_links.py` del volume: link delle progressioni e confronto delle 14 griglie
+  con il capitolo. Dettagli nell'analisi 019 del volume, «Esito dell'attuazione (Progressioni)».
 
 **Domande per l'autore**: decise il 2026-11-14. L'autore ha accettato le quattro proposte:
 nessuna scala suggerita, niente swing, basso in Karplus-Strong da giudicare all'ascolto, nessuna
