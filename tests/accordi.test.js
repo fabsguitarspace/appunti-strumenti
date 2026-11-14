@@ -164,3 +164,46 @@ test('deep link degli accordi: andata e ritorno, valori non validi scartati', ()
   assert.deepEqual(X.RHYTHMS.map((r) => r.id), ['whole', 'half', 'quarters', 'two-four', 'charleston', 'arp']);
   assert.deepEqual(V.FAMILIES.map((f) => f.id), ['shell', 'drop2', 'drop3', 'triad']);
 });
+
+// ADR 0013, punto 5: ritmo d'attacco sulla linea del tempo.
+const crypto = require('node:crypto');
+const stable = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)
+  ? Object.fromEntries(Object.keys(x).sort().map((y) => [y, x[y]])) : x));
+
+test('comping: il passaggio alla linea del tempo non cambia gli esercizi di Accordi', () => {
+  // Impronta calcolata con l'implementazione per accordo precedente (14 novembre 2026), identica
+  // anche sull'intera matrice di qualità, toniche, famiglie, corde, esercizi, ritmi e attacchi.
+  const h = crypto.createHash('sha256');
+  for (const id of ['maj', 'm7', '7', 'm7b5', 'dim7', 'maj9']) {
+    for (const pc of [0, 10]) {
+      const root = C.bestRoots(q(id), pc)[0];
+      for (const family of V.familiesFor(q(id))) {
+        for (const exId of ['inv', 'cycle', 'ii-v-i']) {
+          for (const r of X.RHYTHMS) {
+            for (const bars of [1, 2]) {
+              const out = X.build(q(id), root, { exId, family, set: 'all', rhythmId: r.id, bars, attack: 'strum', fretFrom: 3, fretTo: 12 });
+              h.update(stable([out.events, out.chords.map((c) => [c.symbol, c.voicing.notes]), out.lengthBeats, out.error || '']));
+            }
+          }
+        }
+      }
+    }
+  }
+  assert.equal(h.digest('hex'), 'ade3b4f2429cc28ec4fe2dea23c3e6dfe4e8140c486f9d534a25930a7961a5ea');
+});
+
+test('comping: due accordi nella battuta, colpi troncati al cambio e accento per accordo', () => {
+  const vs = V.voicings(q('maj7'), 0, ['drop2']);
+  const [a, b] = [vs[0], vs[1]];
+  const timeline = [{ start: 0, dur: 2, voicing: a }, { start: 2, dur: 2, voicing: b }, { start: 4, dur: 4, voicing: a }];
+  const whole = X.comp(timeline, X.rhythmDef('whole'), { attack: 'block' });
+  // La semibreve colpisce solo sull'1: il secondo accordo della prima battuta non ha colpi.
+  assert.deepEqual(whole.map((e) => [e.beat, e.dur, e.chord]), [[0, 2, 0], [4, 4, 2]]);
+  const charleston = X.comp(timeline, X.rhythmDef('charleston'), { attack: 'block', part: 'comp' });
+  assert.deepEqual(charleston.map((e) => [e.beat, e.dur, e.chord, e.accent]),
+    [[0, 1.5, 0, true], [1.5, 0.5, 0, false], [4, 1.5, 2, true], [5.5, 2.5, 2, false]]);
+  assert.ok(charleston.every((e) => e.part === 'comp' && e.strum === 0));
+  const arp = X.comp(timeline, X.rhythmDef('arp'), {});
+  assert.equal(arp.length, 16);
+  assert.deepEqual(arp.filter((e) => e.accent).map((e) => e.beat), [0, 2, 4]);
+});

@@ -151,6 +151,18 @@ passi 4.0–4.2 non cambiano nulla di visibile negli strumenti esistenti.
   parte e corda; Scale, Arpeggi e Accordi restano su `comp`.
 - Accettazione: 63 test esistenti verdi, nuovo test di equivalenza; Accordi provato nel browser.
 
+*Esito (2026-11-14).* Fatto.
+- `js/panel-ui.js` è usato da `chordpractice.js`: gli id dei controlli sono invariati (`cp-*`).
+  `practice.js` ha ancora i suoi aiuti.
+- `Comping.comp(timeline, rhythm, opts)` è il nuovo modello. L'impronta degli eventi è identica
+  alla versione precedente su tutte le 192.960 combinazioni di Accordi (qualità × tonica ×
+  famiglia × corde × esercizio × direzione × ritmo × battute × attacco).
+- Test: 65, di cui due nuovi: l'impronta su un campione e il caso di due accordi in una battuta.
+- `AudioEngine` ha i bus `comp`, `bass` e `study`, e lo smorzamento per parte e corda; il
+  trasporto passa `part` e i volumi `volBass` e `volStudy`, se presenti.
+- Nel browser: Accordi a 1280 px con deep link, riproduzione con evidenziazione, volume salvato
+  e trainer; Scale in riproduzione. Nessun errore in console.
+
 **4.1 Modelli puri delle griglie**
 
 - `Chords.extra()` con `7b9`; `js/progression.js` (sigle, ritmo armonico, trasposizione, gradi

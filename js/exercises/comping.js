@@ -91,36 +91,59 @@
       .flatMap(Voicings.octaves);
   }
 
-  /** Eventi di un accordo per `bars` battute a partire dal battito `start`. */
-  function hitsFor(v, r, bars, start, chordIndex, attack, firstI) {
+  /**
+   * Accompagnamento sulla linea del tempo (ADR 0013, punto 5): il ritmo d'attacco scorre per
+   * tutta la sequenza, indipendente dal ritmo armonico. Ogni colpo suona l'accordo in vigore al
+   * suo battito e si tronca al cambio d'accordo; il primo colpo di ogni accordo è accentato.
+   * L'arpeggiato riparte a ogni battuta e a ogni cambio d'accordo, in ottavi dal basso all'acuto.
+   * @param timeline  [{ start, dur, voicing }] in battiti, consecutivi dal battito 0
+   * @param r         ritmo (RHYTHMS): { hits, length = 4 } oppure { arp: true }
+   * @param opts      { attack: 'strum' | 'block', part: parte audio facoltativa (ADR 0013, punto 7) }
+   * @returns         eventi polifonici, in ordine di tempo, con `chord` = indice nella timeline
+   */
+  function comp(timeline, r, opts = {}) {
     const out = [];
-    let i = firstI;
-    for (let b = 0; b < bars; b++) {
-      const t0 = start + 4 * b;
+    const extra = opts.part ? { part: opts.part } : {};
+    const strum = opts.attack === 'strum' ? STRUM : 0;
+    const EPS = 1e-9;
+    timeline.forEach((seg, k) => {
+      const end = seg.start + seg.dur;
+      const v = seg.voicing;
       if (r.arp) {
-        const n = v.notes.length;
-        const order = [];
-        for (let k = 0; order.length < 8; k++) {
+        // Pezzi: l'accordo spezzato alle stanghette.
+        for (let t0 = seg.start; t0 < end - EPS;) {
+          const t1 = Math.min(end, (Math.floor(t0 / 4 + EPS) + 1) * 4);
+          const n = v.notes.length;
           const cyc = 2 * (n - 1);
-          const x = mod(k, cyc);
-          order.push(x < n ? x : cyc - x);
+          const count = Math.round((t1 - t0) * 2);
+          for (let j = 0; j < count; j++) {
+            const x = cyc > 0 ? mod(j, cyc) : 0;
+            const note = v.notes[x < n ? x : cyc - x];
+            out.push({
+              i: out.length, beat: t0 + j / 2, dur: 0.5, ndur: 0.5, notes: [note],
+              string: note.string, fret: note.fret, midi: note.midi,
+              accent: j === 0, chord: k, rest: false, ...extra,
+            });
+          }
+          t0 = t1;
         }
-        order.forEach((k, j) => {
-          const note = v.notes[k];
-          out.push({
-            i: i++, beat: t0 + j / 2, dur: 0.5, ndur: 0.5, notes: [note],
-            string: note.string, fret: note.fret, midi: note.midi,
-            accent: j === 0, chord: chordIndex, rest: false,
-          });
-        });
-      } else {
-        r.hits.forEach((hit, j) => out.push({
-          i: i++, beat: t0 + hit.beat, dur: hit.dur, ndur: hit.dur, notes: v.notes,
-          accent: j === 0 && b === 0, chord: chordIndex, rest: false,
-          strum: attack === 'strum' ? STRUM : 0,
-        }));
+        return;
       }
-    }
+      const len = r.length || 4;
+      let first = true;
+      for (let p = Math.floor(seg.start / len + EPS) * len; p < end - EPS; p += len) {
+        for (const hit of r.hits) {
+          const b = p + hit.beat;
+          if (b < seg.start - EPS || b >= end - EPS) continue;
+          const dur = Math.min(hit.dur, end - b);
+          out.push({
+            i: out.length, beat: b, dur, ndur: dur, notes: v.notes,
+            accent: first, chord: k, rest: false, strum, ...extra,
+          });
+          first = false;
+        }
+      }
+    });
     return out;
   }
 
@@ -160,12 +183,12 @@
     if (!chords.length) {
       return { chords, events: [], lengthBeats: 0, pickupBeats: 0, error: 'Nessun voicing di questa famiglia sulle corde e nella zona scelte: allarga la zona o cambia corde.' };
     }
-    const events = [];
-    chords.forEach((c, k) => events.push(...hitsFor(c.voicing, r, bars, 4 * bars * k, k, s.attack, events.length)));
+    const timeline = chords.map((c, k) => ({ start: 4 * bars * k, dur: 4 * bars, voicing: c.voicing }));
+    const events = comp(timeline, r, { attack: s.attack });
     return { chords, events, lengthBeats: 4 * bars * chords.length, pickupBeats: 0 };
   }
 
-  const Comping = { EXERCISES, RHYTHMS, ATTACKS, DEFAULTS, STRUM, exercise, rhythmDef, progression, candidatesFor, build };
+  const Comping = { EXERCISES, RHYTHMS, ATTACKS, DEFAULTS, STRUM, exercise, rhythmDef, progression, candidatesFor, comp, build };
 
   if (isNode) module.exports = Comping;
   else root.Comping = Comping;

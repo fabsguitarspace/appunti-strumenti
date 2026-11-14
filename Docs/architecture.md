@@ -51,7 +51,7 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `chords.js` | 19 qualità come insiemi di gradi, ortografia, sigle, trasposizione | sì |
 | `voicings.js` | voicing shell, drop 2, drop 3, triadi generati dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
 | `voiceleading.js` | scelta dei voicing lungo una sequenza con movimento minimo (Viterbi) | sì |
-| `exercises/comping.js` | esercizi sugli accordi (rivolti, ciclo delle quarte, II–V–I) e ritmi d'accompagnamento → eventi polifonici | sì |
+| `exercises/comping.js` | esercizi sugli accordi (rivolti, ciclo delle quarte, II–V–I) e ritmi d'accompagnamento sulla linea del tempo (`comp`, ADR 0013): ogni colpo suona l'accordo in vigore → eventi polifonici | sì |
 | `events.js` | normalizzatore degli eventi: `notesOf` (nota singola o `notes[]`), `midisOf` | sì |
 | `exercises/pool.js` | ambiti, posizioni ammesse, pool di altezze con estensione, nota di partenza, nona al posto della fondamentale (`rootOnce`) | sì |
 | `exercises/melodic.js` | motivo × passo × direzione × forma → indici | sì |
@@ -60,7 +60,7 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `exercises/presets.js` | cataloghi per strumento (`Presets`, `Presets.ARPEGGI`, `makeCatalog`, [esercizi.md](esercizi.md)) e pipeline `build()` | sì |
 | `audio/ks.js` | buffer Karplus-Strong + correzione di intonazione | sì |
 | `audio/scheduler.js` | lookahead, loop, count-in, metronomo, trainer, coda visiva | sì (clock finto) |
-| `audio/engine.js` | AudioContext, cache delle voci, smorzamento per corda, click | no |
+| `audio/engine.js` | AudioContext, cache delle voci, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), smorzamento per parte e corda, click | no |
 | `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; note impilate; tab ASCII | sì |
 | `tab/render.js` | SVG della tablatura | no |
 | `fretboard.js` | SVG delle diteggiature e della tastiera intera (`fretFrom/To`, `cellWidth`, `path`) | no |
@@ -70,6 +70,7 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature, cronologia, drawer, scorciatoie, lettura del link | no |
 | `scale.js`, `arpeggi.js`, `accordi.js` | definizioni degli strumenti: catalogo, ortografia, dettagli, diteggiature o voicing, chiavi di salvataggio | no |
 | `chordpractice.js` | pannello Esercizi degli accordi: Cosa/Come/Dove/Opzioni, viste accordi/tastiera/tablatura, ascolto dei voicing, «Copia link» | no |
+| `panel-ui.js` | aiuti comuni ai pannelli (DOM, controlli, assi, asse Opzioni, copia); usato da `chordpractice.js` | no |
 | `chordchart.js` | SVG del diagramma d'accordo verticale | no |
 
 ## Principi
@@ -138,6 +139,6 @@ al posto di `js/scale.js`.
 
 `accordi.html` carica `theory`, `guitar`, `chords`, `voicings`, `voiceleading`, `events`,
 `exercises/comping`, `tab/*`, `audio/*`, `fretboard`, `chordchart`, `link`, `transport`,
-`chordpractice`, `app` e `accordi` (non i moduli degli esercizi melodici né `practice.js`).
+`panel-ui`, `chordpractice`, `app` e `accordi` (non i moduli degli esercizi melodici né `practice.js`).
 
 `index.html` carica solo `theme.js` e il CSS.

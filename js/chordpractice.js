@@ -81,64 +81,10 @@
   });
   const playing = () => transport.playing();
 
-  // ------------------------------------------------------------ DOM helpers
+  // ------------------------------------------------------------ DOM helpers (js/panel-ui.js)
 
-  function h(tag, attrs = {}, ...children) {
-    const e = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) {
-      if (v == null || v === false) continue;
-      if (k === 'class') e.className = v;
-      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
-      else e.setAttribute(k, v === true ? '' : v);
-    }
-    for (const c of children.flat()) {
-      if (c == null || c === false) continue;
-      e.append(c instanceof Node ? c : document.createTextNode(String(c)));
-    }
-    return e;
-  }
-
-  function select(id, text, options, value, onChange) {
-    const s = h('select', { id: 'cp-' + id, 'data-ctl': id });
-    for (const [v, l] of options) s.append(h('option', { value: v }, l));
-    s.value = String(value);
-    s.addEventListener('change', () => onChange(s.value));
-    return h('label', { class: 'field', for: 'cp-' + id }, h('span', { class: 'field-label' }, text), s);
-  }
-
-  function segmented(id, text, options, value, onChange) {
-    return h('div', { class: 'field' },
-      h('span', { class: 'field-label', id: 'cp-' + id + '-l' }, text),
-      h('div', { class: 'segmented seg-wrap', role: 'radiogroup', 'aria-labelledby': 'cp-' + id + '-l' },
-        options.map(([v, l]) => h('button', {
-          type: 'button', role: 'radio', 'data-ctl': id + ':' + v,
-          'aria-checked': String(String(value) === String(v)), onclick: () => onChange(v),
-        }, l))));
-  }
-
-  function toggle(id, text, checked, onChange) {
-    const input = h('input', { type: 'checkbox', 'data-ctl': id });
-    input.checked = !!checked;
-    input.addEventListener('change', () => onChange(input.checked));
-    return h('label', { class: 'check' }, input, h('span', {}, text));
-  }
-
-  function chips(id, text, options, isOn, onToggle) {
-    return h('div', { class: 'field' },
-      h('span', { class: 'field-label' }, text),
-      h('div', { class: 'chips' }, options.map(([v, l]) => h('button', {
-        type: 'button', class: 'chip', 'data-ctl': id + ':' + v,
-        'aria-pressed': String(isOn(v)), onclick: () => onToggle(v),
-      }, l))));
-  }
-
-  function axis(id, title, summary, ...content) {
-    const d = h('details', { class: 'axis', 'data-axis': id, open: openAxes.has(id) },
-      h('summary', {}, h('span', { class: 'axis-title' }, title), h('span', { class: 'axis-sum' }, summary)),
-      h('div', { class: 'axis-body' }, ...content));
-    d.firstChild.addEventListener('click', () => { if (d.open) openAxes.delete(id); else openAxes.add(id); });
-    return d;
-  }
+  const { h, copyText, isIOS } = root.PanelUI;
+  const { select, segmented, toggle, chips, axis, optionsAxis } = root.PanelUI.create('cp-', openAxes);
 
   // ------------------------------------------------------------ Esercizio
 
@@ -286,36 +232,11 @@
   }
 
   function opzioniAxis() {
-    const s = settings;
-    const tr = s.trainer;
-    const sum = [s.metronome ? 'Metronomo' : 'Senza metronomo', s.loop ? 'loop' : 'una volta'];
-    if (tr.on && s.loop) sum.push(`trainer +${tr.step}`);
-    const num = (id, text, value, min, max, step, onChange) => {
-      const input = h('input', { type: 'number', id: 'cp-' + id, 'data-ctl': id, min, max, step, value, inputmode: 'numeric' });
-      input.addEventListener('change', () => onChange(Math.max(min, Math.min(max, Number(input.value) || min))));
-      return h('label', { class: 'field', for: 'cp-' + id }, h('span', { class: 'field-label' }, text), input);
-    };
-    const range = (id, text, value, onChange) => {
-      const input = h('input', { type: 'range', id: 'cp-' + id, 'data-ctl': id, min: 0, max: 1, step: 0.05, value });
-      input.addEventListener('input', () => onChange(Number(input.value)));
-      return h('label', { class: 'field', for: 'cp-' + id }, h('span', { class: 'field-label' }, text), input);
-    };
-    return axis('opzioni', 'Opzioni', sum.join(' · '),
-      h('div', { class: 'toggles' },
-        toggle('metronome', 'Metronomo', s.metronome, (v) => change((st) => { st.metronome = v; })),
-        toggle('loop', 'Ripeti (loop)', s.loop, (v) => change((st) => { st.loop = v; })),
-        toggle('countin', 'Battuta d\'attacco', s.countIn, (v) => change((st) => { st.countIn = v; }))),
-      select('metromode', 'Click del metronomo', [['all', 'Tutti i battiti'], ['downbeat', 'Solo il primo battito']], s.metroMode,
-        (v) => change((st) => { st.metroMode = v; })),
-      h('div', { class: 'field-row' },
-        range('volnotes', 'Volume accordi', s.volNotes, (v) => { settings.volNotes = v; save(); transport.setVolumes({ notes: v }); }),
-        range('volclick', 'Volume metronomo', s.volClick, (v) => { settings.volClick = v; save(); transport.setVolumes({ click: v }); })),
-      toggle('trainer', 'Trainer di velocità (con il loop)', tr.on, (v) => change((st) => { st.trainer.on = v; })),
-      tr.on && h('div', { class: 'field-row three' },
-        num('tstep', '+BPM', tr.step, 1, 40, 1, (v) => change((st) => { st.trainer.step = v; })),
-        num('tevery', 'ogni N giri', tr.every, 1, 16, 1, (v) => change((st) => { st.trainer.every = v; })),
-        num('tmax', 'fino a BPM', tr.max, BPM_MIN, BPM_MAX, 5, (v) => change((st) => { st.trainer.max = v; }))),
-    );
+    return optionsAxis({
+      settings, change, bpmMin: BPM_MIN, bpmMax: BPM_MAX,
+      volumes: [['volNotes', 'notes', 'Volume accordi'], ['volClick', 'click', 'Volume metronomo']],
+      onVolume: (key, bus, v) => { settings[key] = v; save(); transport.setVolumes({ [bus]: v }); },
+    });
   }
 
   function showError(msg) {
@@ -404,24 +325,6 @@
     const names = ex.chords.map((c) => c.symbol).join(' | ');
     const txt = `${mounted.title}\n${names}\n\n` + TabLayout.toAscii(ex.events, { meter: 4, pickupBeats: 0, lengthBeats: ex.lengthBeats });
     copyText(txt, () => { btn.textContent = 'Copiata ✓'; setTimeout(() => { btn.textContent = 'Copia tab'; }, 1500); });
-  }
-
-  function copyText(txt, done) {
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => fallbackCopy(txt, done));
-    else fallbackCopy(txt, done);
-  }
-
-  function fallbackCopy(txt, done) {
-    const ta = h('textarea', { class: 'visually-hidden' });
-    ta.value = txt;
-    document.body.append(ta);
-    ta.select();
-    try { document.execCommand('copy'); done(); } catch (_) { /* niente */ }
-    ta.remove();
-  }
-
-  function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
   function renderPanel() {

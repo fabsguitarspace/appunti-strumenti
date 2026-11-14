@@ -1,6 +1,8 @@
 /**
  * Motore audio (ADR 0003): AudioContext, voci Karplus-Strong in cache, click del metronomo.
  * Si attiva solo dentro un gesto dell'utente (unlock), come richiedono i browser mobili.
+ * Parti (ADR 0013, punto 7): ogni nota appartiene a una parte ('comp', predefinita, 'bass',
+ * 'study') con bus e volume propri; lo smorzamento per corda vale dentro la stessa parte.
  */
 (function (root) {
   'use strict';
@@ -8,12 +10,15 @@
   const KS = root.KS;
   let ctx = null;
   let master = null;
-  let noteBus = null;
+  let noteBus = null;  // parte 'comp': le note degli strumenti (volume 'notes')
+  let bassBus = null;
+  let studyBus = null;
   let clickBus = null;
   const cache = new Map(); // midi → {buffer, rate}
   const active = new Set();
-  const voices = new Map(); // corda → voce in corso (smorzamento per corda)
-  let volumes = { notes: 0.8, click: 0.6 };
+  const voices = new Map(); // parte:corda → voce in corso (smorzamento per corda)
+  let volumes = { notes: 0.8, bass: 0.8, study: 0.5, click: 0.6 };
+  const busOf = (part) => (part === 'bass' ? bassBus : part === 'study' ? studyBus : noteBus);
 
   function supported() {
     return !!(root.AudioContext || root.webkitAudioContext);
@@ -39,6 +44,10 @@
       body.Q.value = 0.5;
       noteBus = ctx.createGain();
       noteBus.connect(body).connect(master);
+      bassBus = ctx.createGain();
+      bassBus.connect(body);
+      studyBus = ctx.createGain();
+      studyBus.connect(body);
       clickBus = ctx.createGain();
       clickBus.connect(master);
       setVolumes(volumes);
@@ -72,7 +81,8 @@
 
   /**
    * @param when     tempo AudioContext di inizio
-   * @param opts     { velocity 0..1, string (per lo smorzamento), duration in secondi }
+   * @param opts     { velocity 0..1, string (per lo smorzamento), duration in secondi,
+   *                  part: 'comp' | 'bass' | 'study' (predefinita 'comp') }
    */
   function playNote(midi, when, opts = {}) {
     if (!ctx) return;
@@ -87,7 +97,7 @@
     // Rilascio a fine nota con una coda breve (legato naturale).
     const dur = Math.max(0.08, opts.duration ?? 1);
     g.gain.setTargetAtTime(0, when + dur, 0.035);
-    src.connect(g).connect(noteBus);
+    src.connect(g).connect(busOf(opts.part));
     src.start(when);
     src.stop(when + Math.min(buffer.duration, dur + 0.4));
     const voice = { src, g, when };
@@ -95,14 +105,15 @@
     src.onended = () => { active.delete(voice); src.disconnect(); g.disconnect(); };
     // Smorzamento per corda: la nuova nota chiude la precedente sulla stessa corda.
     if (opts.string != null) {
-      const prev = voices.get(opts.string);
+      const key = (opts.part || 'comp') + ':' + opts.string;
+      const prev = voices.get(key);
       if (prev && prev.when < when) {
         try {
           prev.g.gain.cancelScheduledValues(when);
           prev.g.gain.setTargetAtTime(0, when, 0.008);
         } catch (_) { /* nota già terminata */ }
       }
-      voices.set(opts.string, voice);
+      voices.set(key, voice);
     }
   }
 
@@ -135,8 +146,10 @@
   }
 
   function setVolumes(v) {
-    volumes = { ...volumes, ...v };
+    for (const [k, x] of Object.entries(v)) if (typeof x === 'number') volumes[k] = x;
     if (noteBus) noteBus.gain.value = volumes.notes;
+    if (bassBus) bassBus.gain.value = volumes.bass;
+    if (studyBus) studyBus.gain.value = volumes.study;
     if (clickBus) clickBus.gain.value = volumes.click;
   }
 

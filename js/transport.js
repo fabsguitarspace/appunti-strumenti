@@ -27,7 +27,7 @@
 
   /**
    * @param deps {
-   *   options(): { bpm, loop, countIn, metronome, metroMode, volNotes, volClick, trainer },
+   *   options(): { bpm, loop, countIn, metronome, metroMode, volNotes, volClick, volBass?, volStudy?, trainer },
    *   onBpm(bpm)          tempo cambiato (pulsanti, tap, trainer): da salvare,
    *   onPlayClick()       pulsante Play/Stop,
    *   onHighlight(ev)     evento da evidenziare, null alla fine,
@@ -49,7 +49,7 @@
         // Pennata (accordi): ogni corda un poco dopo la precedente, dal basso all'acuto.
         const strum = ev.strum || 0;
         Events.notesOf(ev).forEach((n, k) => {
-          AudioEngine.playNote(n.midi, when + k * strum, { velocity: ev.accent ? 1 : 0.6, string: n.string, duration: dur });
+          AudioEngine.playNote(n.midi, when + k * strum, { velocity: ev.accent ? 1 : 0.6, string: n.string, duration: dur, part: ev.part });
         });
       },
       onClick: (when, downbeat) => AudioEngine.click(when, { downbeat }),
@@ -119,7 +119,8 @@
       stop();
       const o = deps.options();
       const full = mode === 'exercise';
-      AudioEngine.setVolumes({ notes: o.volNotes, click: o.volClick });
+      // Le parti 'bass' e 'study' (Progressioni, ADR 0013) hanno volumi propri, se lo strumento li prevede.
+      AudioEngine.setVolumes({ notes: o.volNotes, click: o.volClick, bass: o.volBass, study: o.volStudy });
       AudioEngine.prepare(Events.midisOf(ex.events));
       const bpm0 = o.bpm;
       const tr = o.trainer;
