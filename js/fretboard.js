@@ -118,11 +118,11 @@
       const cx = fretX(p.fret);
       const cy = stringY(p.string);
       const key = p.string + ':' + p.fret;
-      let cls = p.degree === 0 ? 'dot is-root' : 'dot';
+      let cls = (p.root ?? p.degree === 0) ? 'dot is-root' : 'dot';
       if (opts.path && !opts.path.has(key)) cls += ' is-off';
       const g = el('g', { class: cls, 'data-s': p.string, 'data-f': p.fret });
       g.appendChild(el('circle', { cx, cy, r }));
-      const text = labels[p.degree];
+      const text = p.label ?? labels[p.degree];
       g.appendChild(el('text', {
         x: cx, y: cy, 'text-anchor': 'middle', 'dominant-baseline': 'central',
         'font-size': text.length > 2 ? r * 0.8 : r * 1.0,

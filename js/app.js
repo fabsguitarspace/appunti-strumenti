@@ -12,10 +12,14 @@
  *   bestRoots(item, pc)   nomi ammessi della tonica
  *   title(item, root)     titolo mostrato
  *   poolLabel             es. 'Scale nel pool'
- *   practice              configurazione del pannello Esercizi (Practice.configure)
+ *   practice              configurazione del pannello Esercizi (configure del pannello)
+ *   panel                 pannello Esercizi (default window.Practice; Accordi: window.ChordPractice)
+ *   decodeLink(params)    impostazioni dell'esercizio dal link (default Link.decodeExercise)
  *   view(item, root) → { eyebrow, sub, quizHint, notesLabel, notes, degreeLabels, noteLabels,
  *                        details: [[termine, valore]], semis, rootOnce, patterns, patternMeta(pat),
- *                        sectionTitle, sectionNote, plainTitle, hint(categoria) }
+ *                        sectionTitle, sectionNote, plainTitle, hint(categoria),
+ *                        facoltativi: diagram(pat, labels, title), patternCaption(pat, i),
+ *                        groupLabel(pat): intestazione del gruppo di diteggiature }
  */
 (function () {
   'use strict';
@@ -36,7 +40,8 @@
   const items = def.items;
   const slugs = def.slugs;
   const isFamily = (id) => def.families.some((f) => f.id === id);
-  window.Practice.configure(def.practice);
+  const P = def.panel || window.Practice;
+  P.configure(def.practice);
 
   // ------------------------------------------------------------ Stato
 
@@ -154,7 +159,7 @@
       state.revealed = true;
       ok = true;
     }
-    window.Practice.applyLink(Link.decodeExercise(params));
+    P.applyLink((def.decodeLink || Link.decodeExercise)(params));
     save();
     try { history.replaceState(null, '', location.pathname + location.search); } catch (_) { /* file:// restrittivi */ }
     return ok;
@@ -228,7 +233,7 @@
     const out = $('#result');
     const p = state.current;
     if (!p) {
-      window.Practice.unmount();
+      P.unmount();
       out.replaceChildren($('#tpl-empty').content.cloneNode(true));
       return;
     }
@@ -249,7 +254,7 @@
           onclick: () => { state.revealed = true; renderResult(); },
         }, 'Mostra soluzione'),
       ));
-      window.Practice.unmount();
+      P.unmount();
       out.replaceChildren(head);
       return;
     }
@@ -267,20 +272,25 @@
 
     const labels = state.dotLabel === 'degree' ? v.degreeLabels : v.noteLabels;
 
-    const grid = h('div', { class: 'patterns' },
-      v.patterns.map((pat, i) => {
-        const caption = `Diteggiatura ${i + 1}`;
+    const diagram = v.diagram || F.render;
+    let group = null;
+    const grid = h('div', { class: 'patterns' + (v.diagram ? ' patterns-compact' : '') },
+      v.patterns.flatMap((pat, i) => {
+        const caption = v.patternCaption ? v.patternCaption(pat, i) : `Diteggiatura ${i + 1}`;
         const meta = v.patternMeta(pat);
-        return h('figure', { class: 'card pattern', 'data-pattern': i },
+        const g = v.groupLabel ? v.groupLabel(pat) : null;
+        const head = g && g !== group ? h('h3', { class: 'pattern-group' }, g) : null;
+        group = g;
+        return [head, h('figure', { class: 'card pattern', 'data-pattern': i },
           h('figcaption', {},
             h('span', { class: 'cap-text' }, h('strong', {}, caption), h('span', {}, meta)),
             h('button', {
               type: 'button', class: 'quick-btn', 'data-quick': i,
-              'aria-label': `Ascolta la diteggiatura ${i + 1}`,
-              onclick: () => window.Practice.quickPlay(i),
+              'aria-label': `Ascolta: ${caption}`,
+              onclick: () => P.quickPlay(i),
             }, h('span', { class: 't-icon', 'aria-hidden': 'true' }))),
-          F.render(pat, labels, `${caption}, ${meta}`),
-        );
+          diagram(pat, labels, `${caption}, ${meta}`),
+        )];
       }),
     );
 
@@ -303,8 +313,9 @@
 
     const practiceHost = h('div', { class: 'practice-host' });
     out.replaceChildren(head, practiceHost, fingerings);
-    window.Practice.mount({
+    P.mount({
       key: `${p[K]}:${p.root.letter}:${p.root.accidental}`,
+      item, root: p.root,
       semis: v.semis, rootOnce: !!v.rootOnce, patterns: v.patterns,
       degreeLabels: v.degreeLabels, noteLabels: v.noteLabels,
       rootPc: T.pitchClass(p.root),
@@ -410,7 +421,6 @@
       // Niente scorciatoia mentre un controllo usa la tastiera.
       const t = e.target;
       if (t.closest && t.closest('input, select, textarea, button, a, summary, [contenteditable], .neck-scroll')) return;
-      const P = window.Practice;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         if (!P.isActive()) return;
         e.preventDefault();

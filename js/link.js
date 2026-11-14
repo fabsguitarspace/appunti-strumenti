@@ -42,10 +42,10 @@
 
   // ------------------------------------------------------------ Nomi
 
-  /** Identificatore leggibile e stabile da un nome di scala: "Dorica b2" → "dorica-b2", "#" → "s". */
+  /** Identificatore leggibile e stabile da un nome di scala: "Dorica b2" → "dorica-b2", "#" → "s", "♮" → "n". */
   function slug(name) {
     return String(name).normalize('NFD').replace(/[̀-ͯ]/g, '')
-      .toLowerCase().replace(/♯|#/g, 's').replace(/♭/g, 'b')
+      .toLowerCase().replace(/♯|#/g, 's').replace(/♭/g, 'b').replace(/♮/g, 'n')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
@@ -125,8 +125,37 @@
     return out;
   }
 
+  // ------------------------------------------------------------ Esercizio (strumento Accordi)
+
+  /** Impostazioni dell'esercizio sugli accordi → parametri del link (ADR 0012). */
+  function encodeChordExercise(s) {
+    return {
+      ex: s.exId, dir: s.exId === 'inv' ? s.direction : null, fam: s.family, set: s.set,
+      from: s.fretFrom, to: s.fretTo, rhythm: s.rhythmId, bars: s.bars === 2 ? 2 : null,
+      attack: s.attack === 'block' ? 'block' : null, bpm: s.bpm,
+    };
+  }
+
+  /** Parametri del link → impostazioni parziali dell'esercizio sugli accordi. */
+  function decodeChordExercise(p) {
+    const out = {};
+    if (p.ex) out.exId = p.ex;
+    if (p.dir) out.direction = p.dir;
+    if (p.fam) out.family = p.fam;
+    if (p.set && (p.set === 'all' || /^[1-6]{3,4}$/.test(p.set))) out.set = p.set;
+    if (p.from !== undefined) out.fretFrom = int(p.from, 1, 20);
+    if (p.to !== undefined) out.fretTo = int(p.to, 1, 20);
+    if (p.rhythm) out.rhythmId = p.rhythm;
+    if (p.bars !== undefined) out.bars = int(p.bars, 1, 2);
+    if (p.attack) out.attack = p.attack;
+    if (p.bpm !== undefined) out.bpm = int(p.bpm, 1, 999);
+    for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k];
+    return out;
+  }
+
   const Link = {
     VERSION, parse, build, themeOf, slug, parseNote, noteParam, encodeExercise, decodeExercise,
+    encodeChordExercise, decodeChordExercise,
   };
 
   if (isNode) module.exports = Link;

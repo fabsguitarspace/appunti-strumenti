@@ -590,3 +590,25 @@ a.tool-card:hover { background: var(--surface-2); }
 .tool-card.is-soon .tool-go { color: var(--muted); font-weight: 500; }
 .home-foot { margin-top: 28px; display: flex; justify-content: center; }
 .link-bar { margin-top: 4px; }
+
+/* ------------------------------------------------------------ Accordi (ADR 0012) */
+
+.chordchart { display: block; width: 100%; max-width: 150px; height: auto; margin: 0 auto; font-family: var(--font); }
+.cc-grid line { stroke: var(--fb-line); stroke-width: 1; }
+.cc-grid line.cc-nut { stroke: var(--fb-nut); stroke-width: 4; }
+.cc-fret { fill: var(--text); font-size: 12px; font-weight: 600; }
+.cc-muted text { fill: var(--muted); font-size: 13px; }
+.patterns.patterns-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.patterns-compact .pattern figcaption { justify-content: space-between; }
+.pattern-group { grid-column: 1 / -1; margin: 8px 0 0; font-size: .82rem; font-weight: 650; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.pattern-group:first-child { margin-top: 0; }
+.chord-seq { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.chord-seq li { padding: 6px 4px 4px; border: 1px solid var(--line); border-radius: 10px; text-align: center; }
+.chord-seq .chord-sym { display: block; font-weight: 650; font-size: .95rem; }
+.chord-seq li.is-playing { border-color: var(--playing); box-shadow: 0 0 0 2px var(--playing) inset; }
+@media (min-width: 640px) {
+  .patterns.patterns-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px) {
+  .patterns.patterns-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

@@ -46,9 +46,11 @@
       setTimer: (fn, ms) => setTimeout(fn, ms),
       clearTimer: (id) => clearTimeout(id),
       onNote: (ev, when, dur) => {
-        for (const n of Events.notesOf(ev)) {
-          AudioEngine.playNote(n.midi, when, { velocity: ev.accent ? 1 : 0.6, string: n.string, duration: dur });
-        }
+        // Pennata (accordi): ogni corda un poco dopo la precedente, dal basso all'acuto.
+        const strum = ev.strum || 0;
+        Events.notesOf(ev).forEach((n, k) => {
+          AudioEngine.playNote(n.midi, when + k * strum, { velocity: ev.accent ? 1 : 0.6, string: n.string, duration: dur });
+        });
       },
       onClick: (when, downbeat) => AudioEngine.click(when, { downbeat }),
       onEnd: () => stop(),

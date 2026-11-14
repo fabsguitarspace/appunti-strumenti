@@ -10,9 +10,10 @@ puri si caricano anche da Node per i test. È una suite di strumenti con nucleo 
 
 | Pagina | Contenuto |
 |---|---|
-| `index.html` | scelta dello strumento (Scale e Arpeggi attivi; Accordi, Progressioni in arrivo), ritorno al volume |
+| `index.html` | scelta dello strumento (Scale, Arpeggi e Accordi attivi; Progressioni in arrivo), ritorno al volume |
 | `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS, esercizi, trasporto |
 | `arpeggi.html` | strumento Arpeggi: arpeggio casuale (19 qualità), diteggiature in posizione, rivolti, esercizi, trasporto |
+| `accordi.html` | strumento Accordi: accordo casuale, voicing shell/drop 2/drop 3/triadi in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
 
 Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti»).
 
@@ -20,7 +21,8 @@ Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti�
 
 ```
                  ┌────────────────────────── puri, testati in Node ──────────────────────────┐
-theory.js ─► chords.js (Chords: qualità degli arpeggi)
+theory.js ─► chords.js (Chords: qualità) ─► voicings.js (Voicings) ─► voiceleading.js (VoiceLeading)
+                                             └─► exercises/comping.js (Comping: esercizi sugli accordi)
 theory.js ─► guitar.js ─► exercises/pool.js ─► melodic.js ─► rhythm.js ─► fingering.js ─► presets.js
 (Theory)     (Guitar)     (Pool)               (Melodic)     (Rhythm)     (Fingering)     (Presets.build)
 events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Link: deep link)
@@ -37,7 +39,8 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
                                                     ▲  configure(catalogo) · mount(context)
                                        app.js (App: guscio comune di estrazione, ADR 0011)
                                                     ▲  App.start(definizione)
-                                     scale.js · arpeggi.js (definizioni degli strumenti)
+                                     scale.js · arpeggi.js · accordi.js (definizioni degli strumenti)
+   Accordi: chordpractice.js (ChordPractice, stessa interfaccia di Practice) + chordchart.js (diagrammi)
 ```
 
 | Modulo | Responsabilità | Node |
@@ -45,7 +48,10 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `theme.js` | tema chiaro/scuro dal parametro `theme` del link (per scheda) | no |
 | `theory.js` | note, gradi, catalogo 33 scale, spelling enarmonico, ♭/♯ | sì |
 | `guitar.js` | diteggiature 3NPS (18 posizioni per grado di partenza) e in posizione per gli arpeggi (`positionPatterns`) | sì |
-| `chords.js` | 19 qualità di arpeggio come insiemi di gradi, ortografia, sigle | sì |
+| `chords.js` | 19 qualità come insiemi di gradi, ortografia, sigle, trasposizione | sì |
+| `voicings.js` | voicing shell, drop 2, drop 3, triadi generati dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
+| `voiceleading.js` | scelta dei voicing lungo una sequenza con movimento minimo (Viterbi) | sì |
+| `exercises/comping.js` | esercizi sugli accordi (rivolti, ciclo delle quarte, II–V–I) e ritmi d'accompagnamento → eventi polifonici | sì |
 | `events.js` | normalizzatore degli eventi: `notesOf` (nota singola o `notes[]`), `midisOf` | sì |
 | `exercises/pool.js` | ambiti, posizioni ammesse, pool di altezze con estensione, nota di partenza, nona al posto della fondamentale (`rootOnce`) | sì |
 | `exercises/melodic.js` | motivo × passo × direzione × forma → indici | sì |
@@ -62,7 +68,9 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `transport.js` | trasporto comune: barra Play/BPM/Tap, avvio e arresto, trainer, volumi, wake lock, ciclo di evidenziazione | no |
 | `practice.js` | pannello Cosa/Come/Dove/Opzioni comune a Scale e Arpeggi (`configure`), viste, ascolto rapido, «Copia link», stampa | no |
 | `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature, cronologia, drawer, scorciatoie, lettura del link | no |
-| `scale.js`, `arpeggi.js` | definizioni degli strumenti: catalogo, ortografia, dettagli, diteggiature, chiavi di salvataggio | no |
+| `scale.js`, `arpeggi.js`, `accordi.js` | definizioni degli strumenti: catalogo, ortografia, dettagli, diteggiature o voicing, chiavi di salvataggio | no |
+| `chordpractice.js` | pannello Esercizi degli accordi: Cosa/Come/Dove/Opzioni, viste accordi/tastiera/tablatura, ascolto dei voicing, «Copia link» | no |
+| `chordchart.js` | SVG del diagramma d'accordo verticale | no |
 
 ## Principi
 
@@ -78,7 +86,8 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
    ([ADR 0009](ADR-0009-tablatura.md)).
 6. **Le note di un evento si leggono sempre con `Events.notesOf`**: un evento può portare più note
    simultanee (`notes[]`) o una sola (`string`, `fret`, `midi`). Audio, tastiera e tablatura
-   funzionano già con gli accordi ([ADR 0010](ADR-0010-suite-di-strumenti.md), punto 3).
+   funzionano con gli accordi ([ADR 0010](ADR-0010-suite-di-strumenti.md), punto 3); il campo `strum`
+   (secondi fra una corda e la successiva) fa suonare l'accordo pennato.
 7. **I deep link sono un'interfaccia pubblica**: si estendono, non si rompono ([deep-link.md](deep-link.md)).
 
 ## Persistenza
@@ -93,6 +102,8 @@ salvate; gli strumenti nuovi useranno `gsp:<strumento>:v1`.
 | `gsp:practice:v1` | `localStorage` | Scale: assi, BPM, metronomo, loop, trainer, volumi, viste (chiave storica) |
 | `gsp:arpeggi:v1` | `localStorage` | Arpeggi: famiglie, fondamentale, opzioni, arpeggio corrente, cronologia |
 | `gsp:arpeggi:practice:v1` | `localStorage` | Arpeggi: impostazioni dell'esercizio |
+| `gsp:accordi:v1` | `localStorage` | Accordi: famiglie, fondamentale, opzioni, accordo corrente, cronologia |
+| `gsp:accordi:practice:v1` | `localStorage` | Accordi: impostazioni dell'esercizio |
 | `gsp:theme` | `sessionStorage` | tema scelto dal link (`dark`/`light`/`auto`), valido per la scheda |
 
 ## Ordine di caricamento (`scale.html`)
@@ -124,5 +135,9 @@ salvate; gli strumenti nuovi useranno `gsp:<strumento>:v1`.
 
 `arpeggi.html` carica gli stessi script più `js/chords.js` dopo `js/guitar.js`, e `js/arpeggi.js`
 al posto di `js/scale.js`.
+
+`accordi.html` carica `theory`, `guitar`, `chords`, `voicings`, `voiceleading`, `events`,
+`exercises/comping`, `tab/*`, `audio/*`, `fretboard`, `chordchart`, `link`, `transport`,
+`chordpractice`, `app` e `accordi` (non i moduli degli esercizi melodici né `practice.js`).
 
 `index.html` carica solo `theme.js` e il CSS.

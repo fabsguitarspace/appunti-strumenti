@@ -1,6 +1,6 @@
 # Piano 0002 — Suite di pratica: Scale, Arpeggi, Accordi, Progressioni
 
-- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12, fase 2 il 2026-11-14. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
+- Stato: Approvato (2026-11-12); fasi 0 e 1 completate il 2026-11-12, fasi 2 e 3 il 2026-11-14. Ordine: rinomina → fase 0 → 1 (Scale nel volume, versione 1.1) → 2 Arpeggi → 3 Accordi → 4 Progressioni
 - Decisioni: [ADR 0010](../ADR-0010-suite-di-strumenti.md); lato volume
   `appunti-pratica/Docs/adr/0005-strumenti-interattivi-nel-volume.md` e analisi 019
 
@@ -109,6 +109,18 @@ da parte dell'utente.
   stesso insieme di corde; ciclo di quarte con conduzione delle voci; nota al canto fissa.
 - Accettazione: test su `voicings.js` (note corrette, estensione della mano, nessun doppione
   indesiderato) e su `voiceleading.js` (movimento totale minimo su II–V–I noti).
+
+**Esito (2026-11-14, [ADR 0012](../ADR-0012-strumento-accordi.md)).** `accordi.html` attivo nella
+pagina di scelta: 19 qualità × 12 fondamentali; voicing shell, drop 2, drop 3 e triadi strette
+generati dalle formule e mostrati come diagrammi d'accordo con ascolto (pennata, poi le note);
+esercizi rivolti, ciclo delle quarte e II–V–I con conduzione delle voci; sei ritmi
+d'accompagnamento, una o due battute per accordo, pennata o simultaneo; deep link propri. La
+polifonia di scheduler, tastiera e tablatura era già pronta dalla fase 0; aggiunta la pennata
+(`strum`). Test: 63 (9 nuovi in `tests/accordi.test.js`, fra cui gli shell e il II–V–I del capitolo
+6). Verifica nel browser a 1280 e 375 px: deep link, controlli del pannello, riproduzione con
+evidenziazione su diagrammi e tablatura, ascolto dei voicing, Scale e Arpeggi invariati.
+Rimandati: vocabolario per nota al canto ed esercizio «nota al canto fissa», tre voci del chord
+melody. Resta: sezione «Accordi» nel capitolo 11 del volume.
 
 ### 4. Progressioni
 

@@ -203,3 +203,26 @@ le estensioni in ottave si contano da lì.
 
 Arpeggi di nona: la nona sostituisce la fondamentale sopra la settima (C E G B♭ D E G B♭ D),
 quindi i motivi si muovono su quella successiva.
+
+## Strumento Accordi
+
+Esercizi in `js/exercises/comping.js` ([ADR 0012](ADR-0012-strumento-accordi.md)): sequenza di
+accordi × voicing della famiglia scelta × ritmo d'accompagnamento.
+
+| Cosa (`ex`) | Sequenza | Voicing |
+|---|---|---|
+| `inv` Rivolti sullo stesso gruppo di corde | l'accordo estratto in tutti i rivolti dentro la zona, dal più grave (su, giù, su e giù) | tutti quelli della famiglia e delle corde scelte |
+| `cycle` Ciclo delle quarte | dodici accordi della stessa qualità, per quarte dall'accordo estratto | conduzione delle voci (movimento minimo) |
+| `ii-v-i` II–V–I | qualità maggiori e dominanti: IIm7 – V7 – Imaj7; minori: IIø – V7 – Im6; triadi: II – V – I | conduzione delle voci |
+
+| Come | Valori |
+|---|---|
+| Ritmo (`rhythm`) | semibreve, minime, semiminime, sul 2 e sul 4, Charleston (1 e «e» del 2), arpeggiato in ottavi (dal basso all'acuto e ritorno) |
+| Battute per accordo (`bars`) | 1 · 2 |
+| Attacco (`attack`) | pennata (18 ms fra le corde) · simultaneo |
+
+| Dove | Valori |
+|---|---|
+| Famiglia (`fam`) | shell (6–4–3, 5–4–3), drop 2 (5–4–3–2, 4–3–2–1), drop 3 (6–4–3–2, 5–3–2–1), triadi strette (6–5–4 … 3–2–1) |
+| Corde (`set`) | tutte quelle della famiglia, oppure un insieme |
+| Zona (`from`, `to`) | tasti 1–20: limite per i rivolti, zona preferita per la conduzione delle voci |

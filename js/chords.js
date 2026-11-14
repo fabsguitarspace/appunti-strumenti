@@ -120,9 +120,18 @@
     return Theory.noteToString(rootNote, pretty) + q.symbol;
   }
 
+  /**
+   * Nota a distanza di `letters` lettere e `semis` semitoni (es. II di C: 1, 2 → D; V di B♭: 4, 7 → F).
+   */
+  function transpose(n, letters, semis) {
+    const letter = mod(n.letter + letters, 7);
+    const target = mod(Theory.pitchClass(n) + semis, 12);
+    return Theory.note(letter, mod(target - Theory.LETTER_PC[letter] + 6, 12) - 6);
+  }
+
   const Chords = {
     FAMILIES, family, parseTone, toneSemitones, toneToString,
-    catalog, semitones, formula, steps, spell, bestRoots, symbol,
+    catalog, semitones, formula, steps, spell, bestRoots, symbol, transpose,
   };
 
   if (isNode) module.exports = Chords;

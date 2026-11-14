@@ -28,7 +28,7 @@ pulsante **Copia link dell'esercizio** nel pannello Esercizi produce il link del
 
 | Chiave | Valori | Note |
 |---|---|---|
-| `scale` | identificatore della scala, es. `dorica`, `misolidia`, `minore-melodica`, `lidia-dominante`, `locria-s2`, `superlocria`, `frigia-dominante`, `esatonale`, `diminuita-semitono-tono` | nome del catalogo in minuscolo, spazi → `-`, `#` → `s`; elenco completo sotto |
+| `scale` | identificatore della scala, es. `dorica`, `misolidia`, `minore-melodica`, `lidia-b7`, `eolia-b5`, `superlocria`, `frigia-dominante`, `esatonale`, `diminuita-semitono-tono` | nome del catalogo in minuscolo, spazi → `-`, `#` → `s`; elenco completo sotto |
 | `root` | `C`, `F#`, `Bb`, `Ebb`, `Fx` | tonica con ortografia; serve insieme a `scale` |
 | `preset` | id dell'esercizio, es. `lin-updown` | catalogo in [esercizi.md](esercizi.md) / `js/exercises/presets.js`; porta con sé i propri valori predefiniti |
 | `dir` | `up`, `down`, `updown`, `downup` | direzione |
@@ -80,13 +80,50 @@ Esempio: B♭7, rivolti in sequenza dalla terza, diteggiatura 1, 90 BPM:
 arpeggi.html#v=1&chord=7&root=Bb&preset=grp-4&start=2&ext=1&scope=pattern&pattern=1&bpm=90
 ```
 
+## Strumento Accordi (`accordi.html`)
+
+| Chiave | Valori | Note |
+|---|---|---|
+| `chord`, `root` | come negli Arpeggi | accordo e fondamentale; vanno insieme |
+| `ex` | `inv`, `cycle`, `ii-v-i` | rivolti sullo stesso gruppo di corde, ciclo delle quarte, II–V–I verso l'accordo |
+| `dir` | `up`, `down`, `updown` | solo con `ex=inv` |
+| `fam` | `shell`, `drop2`, `drop3`, `triad` | famiglia di voicing; se l'accordo non la prevede si usa la prima disponibile |
+| `set` | `all` oppure corde da chitarrista, es. `4321`, `5432`, `643`, `321` | insieme di corde della famiglia |
+| `from`, `to` | `1`–`20` | zona di tasti |
+| `rhythm` | `whole`, `half`, `quarters`, `two-four`, `charleston`, `arp` | ritmo d'accompagnamento |
+| `bars` | `1`, `2` | battute per accordo (omesso = 1) |
+| `attack` | `strum`, `block` | pennata o simultaneo (omesso = pennata) |
+| `bpm` | `30`–`300` | tempo |
+
+Codice: `Link.encodeChordExercise`/`decodeChordExercise`; id fissati da `tests/accordi.test.js`.
+
+Esempio: II–V–I in Do con gli shell, minime, tasti 1–10:
+
+```
+accordi.html#v=1&chord=maj7&root=C&ex=ii-v-i&fam=shell&set=all&from=1&to=10&rhythm=half&bpm=80
+```
+
 ### Identificatori delle scale
 
 `ionica` `dorica` `frigia` `lidia` `misolidia` `eolia` `locria` ·
-`minore-melodica` `dorica-b2` `lidia-aumentata` `lidia-dominante` `misolidia-b6` `locria-s2` `superlocria` ·
-`minore-armonica` `locria-s6` `ionica-s5` `dorica-s4` `frigia-dominante` `lidia-s2` `superlocria-bb7` ·
+`minore-melodica` `dorica-b2` `lidia-s5` `lidia-b7` `misolidia-b13` `eolia-b5` `superlocria` ·
+`minore-armonica` `locria-n6` `ionica-s5` `dorica-s4` `frigia-dominante` `lidia-s2` `diminuita-b2-b4` ·
 `maggiore-armonica` `dorica-b5` `frigia-b4` `lidia-b3` `misolidia-b2` `lidia-aumentata-s2` `locria-bb7` ·
 `esatonale` `diminuita-semitono-tono` `diminuita-tono-semitono` `aumentata` `aumentata-inversa`
 
-Derivano dai nomi del catalogo (`js/theory.js`): rinominare una scala nel catalogo cambierebbe
-l'identificatore e romperebbe i link. Un test fissa quelli più usati.
+Derivano dai nomi del catalogo (`js/theory.js`): `#` diventa `s`, `b` resta `b`, `♮` diventa `n`.
+Rinominare una scala cambia l'identificatore: il vecchio va aggiunto a `LEGACY_SLUGS` in
+`js/theory.js`, così i link già condivisi continuano a funzionare. Un test fissa gli identificatori
+più usati e verifica che ogni vecchio identificatore porti a una scala esistente.
+
+Il 14 novembre 2026 sei modi delle minori sono stati rinominati come nelle tabelle di Appunti di
+Teoria. I vecchi identificatori restano validi:
+
+| Vecchio | Nuovo | Nome attuale |
+|---|---|---|
+| `lidia-aumentata` | `lidia-s5` | Lidia ♯5 |
+| `lidia-dominante` | `lidia-b7` | Lidia ♭7 |
+| `misolidia-b6` | `misolidia-b13` | Misolidia ♭13 |
+| `locria-s2` | `eolia-b5` | Eolia ♭5 |
+| `locria-s6` | `locria-n6` | Locria ♮6 |
+| `superlocria-bb7` | `diminuita-b2-b4` | Diminuita ♭2 ♭4 |
