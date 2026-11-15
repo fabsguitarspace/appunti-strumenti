@@ -1,6 +1,13 @@
 /**
- * Sintesi Karplus-Strong (ADR 0003): una corda pizzicata calcolata in un Float32Array.
+ * Sintesi Karplus-Strong estesa (ADR 0003): una corda pizzicata calcolata in un Float32Array.
  * Modulo puro (niente Web Audio), testabile in Node.
+ *
+ * Rispetto al KS di base (filtro media e linea di ritardo intera):
+ * - eccitazione con brillantezza regolabile (la sceglie il motore in base alla velocity)
+ *   e filtro a pettine del punto di pizzico;
+ * - filtro di perdita a uno zero con smorzamento degli acuti che dipende dall'altezza;
+ * - ritardo frazionario con un allpass del primo ordine: intonazione esatta senza playbackRate;
+ * - due polarizzazioni della corda, scordate di poco, che producono un battimento lento.
  */
 (function (root) {
   'use strict';
@@ -27,45 +34,94 @@
   }
 
   /**
+   * Peso del campione precedente nel filtro di perdita (0,5 = filtro media del KS di base).
+   * Valori più bassi smorzano meno gli acuti: serve sulle note alte, che fanno molti più giri
+   * della linea di ritardo al secondo e altrimenti diventano sorde.
+   */
+  function lossFor(freq) {
+    return freq < 150 ? 0.42 : freq < 400 ? 0.36 : 0.3;
+  }
+
+  /**
+   * Una polarizzazione della corda: risposta all'eccitazione `exc` di una linea di ritardo
+   * di periodo esatto sr/freq (parte intera + filtro di perdita + allpass frazionario).
+   */
+  function string(exc, freq, sampleRate, len, S, rho) {
+    const P = sampleRate / freq;
+    const Nint = Math.max(1, Math.floor(P - S - 0.1));
+    const d = P - S - Nint; // ritardo frazionario dell'allpass, fra 0,1 e 1,1 campioni
+    const C = (1 - d) / (1 + d);
+    const L = Nint + 2;
+    const y = new Float32Array(L);
+    const out = new Float32Array(len);
+    let w = 0;
+    let apX = 0;
+    let apY = 0;
+    for (let n = 0; n < len; n++) {
+      let r = w - Nint;
+      if (r < 0) r += L;
+      const r1 = r === 0 ? L - 1 : r - 1;
+      const v = rho * ((1 - S) * y[r] + S * y[r1]);
+      const ap = C * v + apX - C * apY;
+      apX = v;
+      apY = ap;
+      const yn = (n < exc.length ? exc[n] : 0) + ap;
+      y[w] = yn;
+      w = w + 1 === L ? 0 : w + 1;
+      out[n] = yn;
+    }
+    return out;
+  }
+
+  /**
+   * @param opts { brightness 0..1 (predefinita 0,55), pickPos frazione della corda (0,14),
+   *               seed, duration in secondi (2,2) }
    * @returns { data: Float32Array, rate, f0 }
-   *   f0   = frequenza prodotta dalla linea di ritardo intera: y[n] = ½(y[n−N] + y[n−N+1]),
-   *          quindi periodo N − 0,5 campioni e f0 = sr / (N − 0,5)
-   *   rate = playbackRate da applicare per ottenere esattamente `freq`
+   *   L'allpass frazionario dà già l'altezza esatta: f0 = freq e rate = 1. I due campi restano
+   *   per compatibilità con il motore (playbackRate).
    */
   function renderPluck(freq, sampleRate, opts = {}) {
     const brightness = opts.brightness ?? 0.55;
-    const N = Math.max(2, Math.floor(sampleRate / freq + 0.5));
-    const f0 = sampleRate / (N - 0.5);
-    const t60 = t60For(freq);
+    const pickPos = opts.pickPos ?? 0.14;
+    const t60 = t60For(freq) * 1.15;
     const duration = Math.min(opts.duration ?? 2.2, t60 + 0.2);
-    const len = Math.max(N * 4, Math.round(duration * sampleRate));
-    // Perdita per periodo per arrivare a −60 dB in t60 (il filtro media aggiunge altra perdita sugli acuti).
-    const rho = Math.pow(10, -3 / (t60 * f0));
+    const P = sampleRate / freq;
+    const len = Math.max(Math.ceil(P * 4), Math.round(duration * sampleRate));
+    const S = lossFor(freq);
 
-    // Eccitazione: rumore passato in un passa-basso a un polo, senza componente continua.
+    // Eccitazione: un periodo di rumore passato in un passa-basso a un polo (più aperto con
+    // `brightness`), poi il pettine del punto di pizzico e la rimozione della componente continua.
     const rand = rng(opts.seed ?? Math.round(freq * 1000));
-    const buf = new Float32Array(N);
+    const nE = Math.max(2, Math.round(P));
+    const noise = new Float32Array(nE);
     let prev = 0;
-    let mean = 0;
-    for (let i = 0; i < N; i++) {
+    for (let i = 0; i < nE; i++) {
       prev = brightness * (rand() * 2 - 1) + (1 - brightness) * prev;
-      buf[i] = prev;
-      mean += prev;
+      noise[i] = prev;
     }
-    mean /= N;
-    for (let i = 0; i < N; i++) buf[i] -= mean;
+    const pick = Math.max(1, Math.round(pickPos * nE));
+    const exc = new Float32Array(nE);
+    let mean = 0;
+    for (let i = 0; i < nE; i++) {
+      exc[i] = noise[i] - (i >= pick ? noise[i - pick] : 0);
+      mean += exc[i];
+    }
+    mean /= nE;
+    for (let i = 0; i < nE; i++) exc[i] -= mean;
+
+    // Due polarizzazioni: la seconda è più alta di 0,8 cent e decade appena prima.
+    const rho = (f) => Math.pow(10, -3 / (t60 * f));
+    const f2 = freq * Math.pow(2, 0.8 / 1200);
+    const a = string(exc, freq, sampleRate, len, S, rho(freq));
+    const b = string(exc, f2, sampleRate, len, S, rho(f2) * 0.9995);
 
     const out = new Float32Array(len);
-    let idx = 0;
     let peak = 0;
     for (let n = 0; n < len; n++) {
-      const cur = buf[idx];
-      const next = buf[idx + 1 === N ? 0 : idx + 1];
-      out[n] = cur;
-      buf[idx] = rho * 0.5 * (cur + next);
-      idx = idx + 1 === N ? 0 : idx + 1;
-      const a = Math.abs(cur);
-      if (a > peak) peak = a;
+      const v = 0.62 * a[n] + 0.38 * b[n];
+      out[n] = v;
+      const m = Math.abs(v);
+      if (m > peak) peak = m;
     }
 
     // Normalizzazione e dissolvenza finale (50 ms) contro i click.
@@ -77,10 +133,10 @@
       if (fromEnd <= fade) g *= (fromEnd - 1) / fade;
       out[n] *= g;
     }
-    return { data: out, rate: freq / f0, f0 };
+    return { data: out, rate: 1, f0: freq };
   }
 
-  const KS = { midiToFreq, renderPluck, t60For };
+  const KS = { midiToFreq, renderPluck, t60For, lossFor };
 
   if (isNode) module.exports = KS;
   else root.KS = KS;

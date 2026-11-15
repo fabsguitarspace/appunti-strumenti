@@ -65,9 +65,9 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `exercises/rhythm.js` | celle, swing, accenti, levare, ripetute → eventi in battiti (tick interi) | sì |
 | `exercises/fingering.js` | Viterbi con finestra della mano e profili → corda e tasto | sì |
 | `exercises/presets.js` | cataloghi per strumento (`Presets`, `Presets.ARPEGGI`, `makeCatalog`, [esercizi.md](esercizi.md)) e pipeline `build()` | sì |
-| `audio/ks.js` | buffer Karplus-Strong + correzione di intonazione | sì |
+| `audio/ks.js` | buffer Karplus-Strong esteso: pizzico, perdita per altezza, allpass frazionario, due polarizzazioni | sì |
 | `audio/scheduler.js` | lookahead, loop, count-in, metronomo, trainer, coda visiva | sì (clock finto) |
-| `audio/engine.js` | AudioContext, cache delle voci, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), smorzamento per parte e corda, click | no |
+| `audio/engine.js` | AudioContext, cache delle voci (strati di velocity, varianti alternate), cassa armonica e riverbero, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), smorzamento per parte e corda, click | no |
 | `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; note impilate; tab ASCII | sì |
 | `tab/render.js` | SVG della tablatura | no |
 | `fretboard.js` | SVG delle diteggiature e della tastiera intera (`fretFrom/To`, `cellWidth`, `path`) | no |

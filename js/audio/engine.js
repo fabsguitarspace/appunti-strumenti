@@ -1,5 +1,6 @@
 /**
- * Motore audio (ADR 0003): AudioContext, voci Karplus-Strong in cache, click del metronomo.
+ * Motore audio (ADR 0003): AudioContext, voci Karplus-Strong in cache, cassa armonica e
+ * riverbero, click del metronomo.
  * Si attiva solo dentro un gesto dell'utente (unlock), come richiedono i browser mobili.
  * Parti (ADR 0013, punto 7): ogni nota appartiene a una parte ('comp', predefinita, 'bass',
  * 'study') con bus e volume propri; lo smorzamento per corda vale dentro la stessa parte.
@@ -14,7 +15,8 @@
   let bassBus = null;
   let studyBus = null;
   let clickBus = null;
-  const cache = new Map(); // midi → {buffer, rate}
+  const cache = new Map(); // 'midi:strato:variante' → {buffer, rate}
+  const rr = new Map();    // 'midi:strato' → ultima variante usata (alternanza)
   const active = new Set();
   const voices = new Map(); // parte:corda → voce in corso (smorzamento per corda)
   let volumes = { notes: 0.8, bass: 0.8, study: 0.5, click: 0.6 };
@@ -38,10 +40,7 @@
       master = ctx.createGain();
       master.gain.value = 0.9;
       master.connect(comp).connect(ctx.destination);
-      const body = ctx.createBiquadFilter(); // ammorbidisce gli acuti del rumore iniziale
-      body.type = 'lowpass';
-      body.frequency.value = 5200;
-      body.Q.value = 0.5;
+      const body = createBody(); // cassa armonica e riverbero: solo per le note, non per il click
       noteBus = ctx.createGain();
       noteBus.connect(body).connect(master);
       bassBus = ctx.createGain();
@@ -61,14 +60,85 @@
     return true;
   }
 
-  function voiceFor(midi) {
-    let v = cache.get(midi);
+  /**
+   * Cassa armonica: filtri risonanti (aria ~100 Hz, tavola ~215 e ~430 Hz, presenza ~2,6 kHz),
+   * taglio del rombo e degli acuti duri, più un riverbero breve da stanza piccola.
+   * Restituisce il nodo d'ingresso; l'uscita va al master.
+   */
+  function createBody() {
+    const filter = (type, f, Q, gain = 0) => {
+      const b = ctx.createBiquadFilter();
+      b.type = type;
+      b.frequency.value = f;
+      b.Q.value = Q;
+      b.gain.value = gain;
+      return b;
+    };
+    const chain = [
+      filter('highpass', 70, 0.7),
+      filter('peaking', 102, 2.2, 5),
+      filter('peaking', 215, 2.5, 3.5),
+      filter('peaking', 430, 2, 2),
+      filter('peaking', 2600, 1.2, 1.5),
+      filter('lowpass', 7500, 0.6),
+    ];
+    for (let i = 0; i < chain.length - 1; i++) chain[i].connect(chain[i + 1]);
+    const out = chain[chain.length - 1];
+    const dry = ctx.createGain();
+    dry.gain.value = 0.86;
+    out.connect(dry).connect(master);
+    try {
+      const verb = ctx.createConvolver();
+      verb.buffer = roomImpulse(1.1);
+      const wet = ctx.createGain();
+      wet.gain.value = 0.22;
+      out.connect(verb).connect(wet).connect(master);
+    } catch (_) { /* senza riverbero se il convolutore non è disponibile */ }
+    return chain[0];
+  }
+
+  /** Risposta all'impulso sintetica di una stanza piccola: rumore stereo che decade e si scurisce. */
+  function roomImpulse(seconds) {
+    const sr = ctx.sampleRate;
+    const len = Math.round(seconds * sr);
+    const ir = ctx.createBuffer(2, len, sr);
+    const pre = Math.round(0.008 * sr);
+    let seed = 0x9e3779b9;
+    const rand = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296 * 2 - 1; };
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      let lp = 0;
+      for (let n = pre; n < len; n++) {
+        const t = (n - pre) / sr;
+        const k = 0.6 - 0.45 * Math.min(1, t / seconds); // le code sono più scure
+        lp = k * rand() + (1 - k) * lp;
+        d[n] = lp * Math.exp(-6.9 * t / (seconds * 0.8));
+      }
+    }
+    return ir;
+  }
+
+  /**
+   * Voce in cache per altezza e strato di velocity (morbido / accentato: cambia la brillantezza
+   * dell'eccitazione), con due varianti alternate perché le note ripetute non siano identiche.
+   */
+  function voiceFor(midi, velocity = 0.8) {
+    const layer = velocity > 0.85 ? 1 : 0;
+    const rk = midi + ':' + layer;
+    const variant = rr.get(rk) === 0 ? 1 : 0;
+    rr.set(rk, variant);
+    const key = rk + ':' + variant;
+    let v = cache.get(key);
     if (!v) {
-      const { data, rate } = KS.renderPluck(KS.midiToFreq(midi), ctx.sampleRate);
+      const freq = KS.midiToFreq(midi);
+      const { data, rate } = KS.renderPluck(freq, ctx.sampleRate, {
+        brightness: layer ? 0.85 : 0.6,
+        seed: Math.round(freq * 1000) + layer * 7919 + variant * 104729,
+      });
       const buffer = ctx.createBuffer(1, data.length, ctx.sampleRate);
       buffer.getChannelData(0).set(data);
       v = { buffer, rate };
-      cache.set(midi, v);
+      cache.set(key, v);
     }
     return v;
   }
@@ -76,7 +146,8 @@
   /** Pre-calcola i buffer delle altezze di un esercizio (evita lavoro durante la riproduzione). */
   function prepare(midis) {
     if (!ctx) return;
-    for (const m of new Set(midis)) if (m != null) voiceFor(m);
+    // Una variante per strato; la seconda si calcola alla prima nota ripetuta (circa 1–2 ms).
+    for (const m of new Set(midis)) if (m != null) { voiceFor(m, 0.6); voiceFor(m, 1); }
   }
 
   /**
@@ -86,12 +157,12 @@
    */
   function playNote(midi, when, opts = {}) {
     if (!ctx) return;
-    const { buffer, rate } = voiceFor(midi);
+    const vel = opts.velocity ?? 0.8;
+    const { buffer, rate } = voiceFor(midi, vel);
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     src.playbackRate.value = rate;
     const g = ctx.createGain();
-    const vel = opts.velocity ?? 0.8;
     g.gain.setValueAtTime(0, when);
     g.gain.linearRampToValueAtTime(vel, when + 0.002);
     // Rilascio a fine nota con una coda breve (legato naturale).

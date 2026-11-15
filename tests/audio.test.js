@@ -29,9 +29,33 @@ test('Karplus-Strong: intonazione entro ±5 cent da MIDI 40 a 88', () => {
     const freq = KS.midiToFreq(midi);
     const { data, rate, f0 } = KS.renderPluck(freq, sr);
     const est = estimateF0(data, sr, Math.round(sr / f0));
-    const played = est * rate; // il playbackRate corregge la linea di ritardo intera
-    assert.ok(Math.abs(cents(played, freq)) < 5, `MIDI ${midi}: ${cents(played, freq).toFixed(2)} cent`);
+    const played = est * rate; // con l'allpass frazionario rate = 1
+    assert.equal(rate, 1);
+    assert.ok(Math.abs(cents(played, freq)) < 2, `MIDI ${midi}: ${cents(played, freq).toFixed(2)} cent`);
   }
+});
+
+/** Energia della differenza prima (misura grezza del contenuto di acuti) relativa all'energia totale. */
+function brightnessOf(data) {
+  let e = 0; let d = 0;
+  for (let i = 1; i < 4410; i++) { e += data[i] * data[i]; d += (data[i] - data[i - 1]) ** 2; }
+  return d / e;
+}
+
+test('Karplus-Strong: la brillantezza dell\'eccitazione cambia il timbro', () => {
+  const soft = KS.renderPluck(196, 44100, { brightness: 0.6 }).data;
+  const hard = KS.renderPluck(196, 44100, { brightness: 0.85 }).data;
+  assert.ok(brightnessOf(hard) > brightnessOf(soft) * 1.2);
+});
+
+test('Karplus-Strong: semi diversi danno varianti diverse, lo stesso seme lo stesso buffer', () => {
+  const a = KS.renderPluck(220, 44100, { seed: 1 }).data;
+  const b = KS.renderPluck(220, 44100, { seed: 2 }).data;
+  const c = KS.renderPluck(220, 44100, { seed: 1 }).data;
+  assert.deepEqual(a, c);
+  let diff = 0;
+  for (let i = 0; i < 2000; i++) diff += Math.abs(a[i] - b[i]);
+  assert.ok(diff > 1);
 });
 
 test('Karplus-Strong: buffer valido, normalizzato e che decade', () => {
