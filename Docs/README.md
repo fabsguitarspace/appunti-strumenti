@@ -6,6 +6,10 @@
 - [plans/0001-audio-ed-esercizi.md](plans/0001-audio-ed-esercizi.md): piano (completato) per ascolto, esercizi su tutta la tastiera e tablatura.
 - [plans/0002-suite-pratica.md](plans/0002-suite-pratica.md): piano (approvato) per la suite Scale, Arpeggi, Accordi, Progressioni e l'integrazione nel volume Appunti di Pratica (fasi 0–3 completate; fase 4 analizzata, ADR 0013).
 
+## Note di rilascio
+
+Dal 19 novembre 2026, su richiesta dell'utente: `note-di-rilascio.html`, collegata dal piè di pagina della pagina principale. A ogni aggiornamento pubblicato (push su main che cambia ciò che l'utente vede) aggiungere in cima una sezione `<section class="card release">` con la data in `<time datetime="AAAA-MM-GG">` e le voci scritte per chi usa gli strumenti; una sola sezione per data. `tests/release-notes.test.js` controlla link, date e ordine. Le novità dei capitoli restano nelle note di rilascio dei volumi.
+
 ## ADR (Architecture Decision Records)
 
 | # | Titolo | Stato |
