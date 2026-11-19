@@ -226,6 +226,6 @@ accordi × voicing della famiglia scelta × ritmo d'accompagnamento.
 
 | Dove | Valori |
 |---|---|
-| Famiglia (`fam`) | shell (6–4–3, 5–4–3), drop 2 (5–4–3–2, 4–3–2–1), drop 3 (6–4–3–2, 5–3–2–1), triadi strette (6–5–4 … 3–2–1) |
+| Famiglia (`fam`) | shell (6–4–3, 5–4–3), drop 2 (6–5–4–3, 5–4–3–2, 4–3–2–1), drop 3 (6–4–3–2, 5–3–2–1), drop 2 e 4 (6–5–3–2, 5–4–2–1), senza fondamentale (5–4–3–2, 4–3–2–1), triadi late (6–4–3, 5–3–2, 4–2–1), strutture superiori (5–4–3–2, 4–3–2–1; opzione tensioni alterate), per quarte (4–3–2, 3–2–1, 5–4–3–2, 4–3–2–1, 5–4–3–2–1), cluster (5–4–3–2, 4–3–2–1, al più quattro per gruppo), triadi strette (6–5–4 … 3–2–1) |
 | Corde (`set`) | tutte quelle della famiglia, oppure un insieme |
 | Zona (`from`, `to`) | tasti 1–20: limite per i rivolti, zona preferita per la conduzione delle voci |

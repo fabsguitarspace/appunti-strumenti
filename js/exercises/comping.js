@@ -61,6 +61,7 @@
   const DEFAULTS = {
     exId: 'inv', direction: 'up', family: 'drop2', set: '4321', fretFrom: 1, fretTo: 15,
     rhythmId: 'half', bars: 1, attack: 'strum',
+    alt: false, // tensioni alterate nelle strutture superiori (ADR 0015)
   };
 
   const MINOR = new Set(['m', 'dim', 'm6', 'm7', 'mmaj7', 'm7b5', 'dim7', 'm69', 'm9', 'mmaj9']);
@@ -72,7 +73,7 @@
    */
   function progression(exId, q, rootNote, catalog, family) {
     const byId = (id) => catalog.find((x) => x.id === id);
-    const triad = family === 'triad';
+    const triad = family === 'triad' || family === 'spread';
     if (exId === 'ii-v-i') {
       const minor = MINOR.has(q.id);
       const ids = triad ? (minor ? ['dim', 'maj', 'm'] : ['m', 'maj', 'maj'])
@@ -101,11 +102,27 @@
    * Voicing della famiglia e dell'insieme di corde (`'all'`: tutti gli insiemi della famiglia),
    * in tutte le ottave dentro il manico.
    */
-  function candidatesFor(quality, rootPc, family, set) {
+  function candidatesFor(quality, rootPc, family, set, alt = false) {
     const want = set === 'all' ? null : Voicings.setFrom(set);
-    return Voicings.voicings(quality, rootPc, [family])
+    return Voicings.voicings(quality, rootPc, [family], { alt })
       .filter((v) => !want || Voicings.sameSet(v.strings, want))
       .flatMap(Voicings.octaves);
+  }
+
+  /**
+   * Candidati di un accordo della sequenza (ciclo, II–V–I): se la famiglia non ha voicing per
+   * quella qualità (es. strutture superiori sul semidiminuito), senza fondamentale e poi drop 2.
+   */
+  function sequenceCandidates(quality, rootPc, s) {
+    const own = candidatesFor(quality, rootPc, s.family, s.set, s.alt);
+    if (own.length || !['ust', 'quartal', 'cluster'].includes(s.family)) return own;
+    for (const fam of ['rootless', 'drop2']) {
+      const list = candidatesFor(quality, rootPc, fam, s.set === 'all' ? 'all' : s.set, false);
+      if (list.length) return list;
+      const any = candidatesFor(quality, rootPc, fam, 'all', false);
+      if (any.length) return any;
+    }
+    return own;
   }
 
   /**
@@ -181,7 +198,7 @@
     let chosen;
     if (s.exId === 'inv') {
       // Rivolti dello stesso accordo dal basso verso l'alto, dentro la zona (estremi inclusi).
-      let list = candidatesFor(q, Theory.pitchClass(rootNote), s.family, s.set)
+      let list = candidatesFor(q, Theory.pitchClass(rootNote), s.family, s.set, s.alt)
         .filter((v) => v.minFret >= lo && v.maxFret <= hi)
         .sort((a, b) => a.notes[0].midi - b.notes[0].midi || a.minFret - b.minFret);
       if (s.direction === 'down') list = list.reverse();
@@ -190,7 +207,7 @@
       prog.length = 0;
       list.forEach(() => prog.push({ quality: q, root: rootNote }));
     } else {
-      const cands = prog.map((c) => candidatesFor(c.quality, Theory.pitchClass(c.root), s.family, s.set));
+      const cands = prog.map((c) => sequenceCandidates(c.quality, Theory.pitchClass(c.root), s));
       // Negli shell il basso di fondamentale è la disposizione di riferimento (capitolo 6):
       // terza e quinta al basso si scelgono solo se fanno risparmiare movimento.
       const cost = (v) => (s.family === 'shell' && v.bass !== 0 ? 4 : 0);

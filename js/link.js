@@ -132,7 +132,7 @@
     return {
       ex: s.exId, dir: s.exId === 'inv' ? s.direction : null, fam: s.family, set: s.set,
       from: s.fretFrom, to: s.fretTo, rhythm: s.rhythmId, bars: s.bars === 2 ? 2 : null,
-      attack: s.attack === 'block' ? 'block' : null, bpm: s.bpm,
+      attack: s.attack === 'block' ? 'block' : null, alt: s.alt ? 1 : null, bpm: s.bpm,
     };
   }
 
@@ -142,12 +142,13 @@
     if (p.ex) out.exId = p.ex;
     if (p.dir) out.direction = p.dir;
     if (p.fam) out.family = p.fam;
-    if (p.set && (p.set === 'all' || /^[1-6]{3,4}$/.test(p.set))) out.set = p.set;
+    if (p.set && (p.set === 'all' || /^[1-6]{3,5}$/.test(p.set))) out.set = p.set;
     if (p.from !== undefined) out.fretFrom = int(p.from, 1, 20);
     if (p.to !== undefined) out.fretTo = int(p.to, 1, 20);
     if (p.rhythm) out.rhythmId = p.rhythm;
     if (p.bars !== undefined) out.bars = int(p.bars, 1, 2);
     if (p.attack) out.attack = p.attack;
+    if (p.alt !== undefined) out.alt = p.alt === '1';
     if (p.bpm !== undefined) out.bpm = int(p.bpm, 1, 999);
     for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k];
     return out;
@@ -164,7 +165,7 @@
       rhythm: s.rhythmId, attack: s.attack === 'block' ? 'block' : null, bass: s.bass,
       fam: s.family, set: s.set, from: s.fretFrom, to: s.fretTo, study: s.study,
       giri: s.giri, form: s.form === 'full' ? 'full' : null, end: s.ending === 'closed' ? 'closed' : null,
-      bpm: s.bpm,
+      alt: s.alt ? 1 : null, bpm: s.bpm,
     };
   }
 
@@ -175,10 +176,11 @@
     if (p.attack) out.attack = p.attack;
     if (p.bass) out.bass = p.bass;
     if (p.fam) out.family = p.fam;
-    if (p.set && (p.set === 'all' || /^[1-6]{3,4}$/.test(p.set))) out.set = p.set;
+    if (p.set && (p.set === 'all' || /^[1-6]{3,5}$/.test(p.set))) out.set = p.set;
     if (p.from !== undefined) out.fretFrom = int(p.from, 1, 20);
     if (p.to !== undefined) out.fretTo = int(p.to, 1, 20);
     if (p.study) out.study = p.study;
+    if (p.alt !== undefined) out.alt = p.alt === '1';
     if (p.giri !== undefined) { const g = int(p.giri, 0, 4); if (g !== undefined && g !== 3) out.giri = g; }
     if (p.form) out.form = p.form === 'full' ? 'full' : 'short';
     if (p.end) out.ending = p.end === 'closed' ? 'closed' : 'loop';

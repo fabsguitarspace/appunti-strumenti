@@ -87,8 +87,9 @@ arpeggi.html#v=1&chord=7&root=Bb&preset=grp-4&start=2&ext=1&scope=pattern&patter
 | `chord`, `root` | come negli Arpeggi | accordo e fondamentale; vanno insieme |
 | `ex` | `inv`, `cycle`, `ii-v-i` | rivolti sullo stesso gruppo di corde, ciclo delle quarte, II–V–I verso l'accordo |
 | `dir` | `up`, `down`, `updown` | solo con `ex=inv` |
-| `fam` | `shell`, `drop2`, `drop3`, `triad` | famiglia di voicing; se l'accordo non la prevede si usa la prima disponibile |
-| `set` | `all` oppure corde da chitarrista, es. `4321`, `5432`, `643`, `321` | insieme di corde della famiglia |
+| `fam` | `shell`, `triad`, `spread`, `drop2`, `drop3`, `drop24`, `rootless`, `ust`, `quartal`, `cluster` | famiglia di voicing (ADR 0015: `spread` = triadi late, `drop24` = drop 2 e 4, `rootless` = senza fondamentale, `ust` = strutture superiori, `quartal` = per quarte); se l'accordo non la prevede si usa la prima disponibile; nel ciclo e nel II–V–I gli accordi senza voicing di colore ripiegano su senza fondamentale e drop 2 |
+| `set` | `all` oppure corde da chitarrista, es. `4321`, `5432`, `6543`, `6532`, `5421`, `54321`, `643`, `532`, `421`, `321` | insieme di corde della famiglia (da tre a cinque corde) |
+| `alt` | `1` | tensioni alterate nelle strutture superiori dei dominanti (omesso = solo naturali) |
 | `from`, `to` | `1`–`20` | zona di tasti |
 | `rhythm` | `whole`, `half`, `quarters`, `two-four`, `charleston`, `arp` | ritmo d'accompagnamento |
 | `bars` | `1`, `2` | battute per accordo (omesso = 1) |
@@ -112,7 +113,7 @@ accordi.html#v=1&chord=maj7&root=C&ex=ii-v-i&fam=shell&set=all&from=1&to=10&rhyt
 | `rhythm` | quelli di Accordi più `offbeat`, `bossa`, `green` | ritmo d'attacco; `green` solo con `fam=shell` o `triad` |
 | `attack` | `strum`, `block` | pennata o simultaneo (omesso = pennata) |
 | `bass` | `off`, `roots`, `walk` | basso spento, fondamentali, walking di base |
-| `fam` | `shell`, `drop2`, `drop3`, `triad` | famiglia di voicing; con `shell` le eccezioni del capitolo usano quattro voci |
+| `fam` | `shell`, `triad`, `spread`, `drop2`, `drop3`, `drop24`, `rootless`, `ust`, `quartal`, `cluster` | famiglia di voicing; con `shell` le eccezioni del capitolo usano quattro voci; con `triad` e `spread` si suona la triade dell'accordo; `alt=1` come in Accordi |
 | `set` | `all` oppure corde da chitarrista, es. `543`, `4321` | insieme di corde della famiglia |
 | `from`, `to` | `1`–`20` | zona di tasti |
 | `study` | `grid`, `guide`, `arp`, `play` | griglia, note guida, arpeggio dell'accordo, «suona tu» |

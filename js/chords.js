@@ -43,10 +43,29 @@
     return t.label || Theory.degreeToString(t, pretty);
   }
 
+  /**
+   * Tensioni disponibili per qualità (ADR 0015, punto 1): naturali e, per i dominanti, alterate.
+   * Non sono note dell'arpeggio: servono solo ai voicing (strutture superiori, quarte, cluster).
+   */
+  const TENSIONS = {
+    maj7: ['9 #11 13'], maj9: ['9 #11 13'], 6: ['9 #11 13'], 69: ['9 #11 13'],
+    m7: ['9 11 13'], m9: ['9 11 13'],
+    m6: ['9 11'], m69: ['9 11'], mmaj7: ['9 11'], mmaj9: ['9 11'],
+    7: ['9 13', 'b9 #9 #11 b13'], 9: ['9 13', 'b9 #9 #11 b13'],
+    '7s5': ['9', 'b9 #9'],
+    m7b5: ['9 11 b13'],
+    dim7: ['9 11 b13 7'],
+    '7b9': ['13', '#9 #11 b13'],
+  };
+  const tensionList = (spec) => (spec || '').split(/\s+/).filter(Boolean).map(parseTone);
+
   function Q(id, symbol, name, familyId, formula, aka = '') {
+    const [natural, altered] = TENSIONS[id] || [];
     return {
       id, symbol, name, aka, family: familyId,
       tones: formula.split(/\s+/).map(parseTone),
+      tensions: tensionList(natural),
+      altered: tensionList(altered),
       // Arpeggi estesi: la nona sta sopra la settima e sostituisce la fondamentale (Pool.pitchPool).
       rootOnce: familyId === 'extended',
     };

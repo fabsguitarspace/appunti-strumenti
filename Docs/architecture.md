@@ -13,7 +13,7 @@ puri si caricano anche da Node per i test. È una suite di strumenti con nucleo 
 | `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi e Progressioni), ritorno al volume |
 | `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS o in posizione (pentatoniche e blues, ADR 0014), esercizi, trasporto |
 | `arpeggi.html` | strumento Arpeggi: arpeggio casuale (19 qualità), diteggiature in posizione, rivolti, esercizi, trasporto |
-| `accordi.html` | strumento Accordi: accordo casuale, voicing shell/drop 2/drop 3/triadi in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
+| `accordi.html` | strumento Accordi: accordo casuale, voicing shell/triadi strette e late/drop/senza fondamentale/strutture superiori/quarte/cluster in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
 | `progressioni.html` | strumento Progressioni: progressione casuale del capitolo 7, griglia, accompagnamento, basso, note guida, quiz sui gradi romani, trasporto |
 
 Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti»).
@@ -54,7 +54,7 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `chords.js` | 19 qualità come insiemi di gradi (più `extra()`: 7♭9 per Progressioni), ortografia, sigle, trasposizione | sì |
 | `progression.js` | griglie di accordi (ADR 0013): sigle (`parseSymbol`), ritmo armonico, trasposizione per lettere e semitoni, nome della tonalità, gradi romani; `realize` → battute e linea del tempo | sì |
 | `progressions.js` | catalogo delle 14 griglie del capitolo 7 del volume (id pubblici, sezioni, forma, centri) | sì |
-| `voicings.js` | voicing shell, drop 2, drop 3, triadi generati dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
+| `voicings.js` | voicing shell, triadi strette e late, drop 2, drop 3, drop 2 e 4, senza fondamentale, strutture superiori, per quarte e cluster generati (ADR 0012, ADR 0015); `toneList(q)` aggiunge alle note della qualità i colori dei senza fondamentale e le tensioni di `chords.js` (es. 13, ♯11, ♭9), con gli stessi indici `tone` usati per le etichette dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
 | `voiceleading.js` | scelta dei voicing lungo una sequenza con movimento minimo (Viterbi) | sì |
 | `exercises/comping.js` | esercizi sugli accordi (rivolti, ciclo delle quarte, II–V–I) e ritmi d'accompagnamento sulla linea del tempo (`comp`, ADR 0013): ogni colpo suona l'accordo in vigore → eventi polifonici | sì |
 | `exercises/progcomp.js` | accompagnamento delle progressioni (ADR 0013): voicing con la conduzione delle voci sull'intera forma e sul ritorno del loop, eccezioni del capitolo 7 (quattro voci, sigla con barra), ritmi `PROG_RHYTHMS`, note guida → eventi `comp`, `bass`, `study` | sì |

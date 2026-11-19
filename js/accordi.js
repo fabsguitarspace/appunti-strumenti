@@ -28,8 +28,15 @@
       const notes = C.spell(q, root);
       const noteLabels = notes.map((n) => T.noteToString(n, true));
       const degreeLabels = q.tones.map((t) => C.toneToString(t, true));
-      const voicings = V.voicings(q, T.pitchClass(root))
+      // Etichette dei voicing: le note della qualità più i colori dei voicing senza fondamentale
+      // (es. 13 nel dominante), con gli stessi indici `tone` di js/voicings.js (ADR 0015).
+      const tones = V.toneList(q);
+      const voicingDegrees = tones.map((t) => C.toneToString(t, true));
+      const voicingNotes = C.spell({ ...q, tones }, root).map((n) => T.noteToString(n, true));
+      // Con le alterate (strutture superiori dei dominanti, ADR 0015) in un gruppo a parte.
+      const voicings = V.voicings(q, T.pitchClass(root), undefined, { alt: true })
         .sort((a, b) => FAMILY_ORDER.indexOf(a.family) - FAMILY_ORDER.indexOf(b.family) ||
+          (a.alt ? 1 : 0) - (b.alt ? 1 : 0) ||
           a.strings[0] - b.strings[0] || a.notes[0].midi - b.notes[0].midi);
       const setName = (v) => v.label.split('').join('–');
       return {
@@ -45,10 +52,10 @@
         ],
         semis: C.semitones(q),
         patterns: voicings,
-        diagram: (v, labels, title) => ChordChart.render(v, labels, title),
-        groupLabel: (v) => `${V.family(v.family).label} · corde ${setName(v)}`,
-        patternCaption: (v) => `${degreeLabels[v.top]} al canto`,
-        patternMeta: (v) => `basso ${degreeLabels[v.bass]} · tasti ${v.minFret}–${v.maxFret}`,
+        diagram: (v, labels, title) => ChordChart.render(v, labels === degreeLabels ? voicingDegrees : voicingNotes, title),
+        groupLabel: (v) => `${V.family(v.family).label}${v.alt ? ' alterate' : ''} · corde ${setName(v)}`,
+        patternCaption: (v) => (v.upper ? `triade di ${v.upper} · ` : '') + `${voicingDegrees[v.top]} al canto`,
+        patternMeta: (v) => `basso ${voicingDegrees[v.bass]} · tasti ${v.minFret}–${v.maxFret}`,
         sectionTitle: 'Voicing',
         sectionNote: q.family === 'extended'
           ? 'Accordatura standard. Negli accordi di nona la nona sostituisce la fondamentale (3 5 7 9) e non va mai al basso. Niente corde a vuoto; fondamentale in rosso.'

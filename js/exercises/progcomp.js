@@ -94,9 +94,10 @@
       return tag(strict.length ? strict : all, pref);
     }
     if (s.family === 'shell' && fourVoices) return tag(drop2(), pref);
-    const list = s.family === 'triad'
-      ? Comping.candidatesFor(triadOf(q), pc, 'triad', s.set)
-      : Comping.candidatesFor(q, pc, s.family, s.set);
+    const triads = s.family === 'triad' || s.family === 'spread';
+    const list = triads
+      ? Comping.candidatesFor(triadOf(q), pc, s.family, s.set)
+      : Comping.candidatesFor(q, pc, s.family, s.set, s.alt);
     if (list.length) return tag(list, s.family === 'shell' ? 0 : null);
     // Nessun voicing della famiglia (es. drop 3 di una qualità senza): drop 2 a quattro voci.
     return tag(drop2(), pref);

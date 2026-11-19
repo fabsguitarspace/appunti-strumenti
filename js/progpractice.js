@@ -156,7 +156,8 @@
 
   /** Nome scritto di un'altezza nell'accordo (Fa, non Mi♯), oppure il nome più semplice. */
   function noteName(chord, midi) {
-    const notes = C.spell(chord.quality, chord.root).concat(chord.bass ? [chord.bass] : []);
+    const notes = C.spell({ ...chord.quality, tones: V.toneList(chord.quality) }, chord.root)
+      .concat(chord.bass ? [chord.bass] : []);
     const n = notes.find((x) => T.pitchClass(x) === mod(midi, 12));
     const name = n || T.rootCandidates(mod(midi, 12))[0];
     return T.noteToString(name, true);
@@ -166,7 +167,7 @@
   function toneLabel(chord, midi) {
     if (mounted.labelMode === 'note') return noteName(chord, midi);
     const rootPc = T.pitchClass(chord.root);
-    const t = chord.quality.tones.find((x) => mod(rootPc + C.toneSemitones(x), 12) === mod(midi, 12));
+    const t = V.toneList(chord.quality).find((x) => mod(rootPc + C.toneSemitones(x), 12) === mod(midi, 12));
     return t ? C.toneToString(t, true) : noteName(chord, midi);
   }
 

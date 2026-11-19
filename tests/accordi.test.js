@@ -17,7 +17,9 @@ const find = (vs, fam, set, bass) => vs.filter((v) => v.family === fam && v.labe
 test('voicing: note giuste, una per corda, entro cinque tasti, niente vuoti né tensioni al basso', () => {
   let count = 0;
   for (const quality of C.catalog()) {
-    const semis = C.semitones(quality);
+    // Indici `tone` nelle note della qualità più i colori dei senza fondamentale (ADR 0015).
+    const tones = V.toneList(quality);
+    const semis = tones.map((t) => C.toneSemitones(t) % 12);
     for (let pc = 0; pc < 12; pc++) {
       for (const v of V.voicings(quality, pc)) {
         const tag = `${quality.id} ${pc} ${v.family} ${v.label} ${frets(v)}`;
@@ -30,7 +32,7 @@ test('voicing: note giuste, una per corda, entro cinque tasti, niente vuoti né 
         }
         for (let i = 1; i < v.notes.length; i++) assert.ok(v.notes[i].midi > v.notes[i - 1].midi, tag);
         assert.equal(new Set(v.notes.map((n) => n.tone)).size, v.notes.length, tag + ' (note ripetute)');
-        assert.ok(quality.tones[v.bass].number <= 7, tag + ' (tensione al basso)');
+        assert.ok(tones[v.bass].number <= 7, tag + ' (tensione al basso)');
       }
     }
   }
@@ -41,16 +43,18 @@ test('famiglie per qualità: drop 2 e drop 3 in quattro rivolti per ogni accordo
   for (const id of ['6', '7', 'maj7', 'm6', 'm7', 'mmaj7', 'm7b5', '7s5', 'dim7']) {
     for (let pc = 0; pc < 12; pc++) {
       const vs = V.voicings(q(id), pc);
-      for (const [fam, set] of [['drop2', '4321'], ['drop2', '5432'], ['drop3', '6432'], ['drop3', '5321']]) {
+      for (const [fam, set] of [['drop2', '4321'], ['drop2', '5432'], ['drop2', '6543'], ['drop3', '6432'], ['drop3', '5321'], ['drop24', '6532'], ['drop24', '5421']]) {
         const list = find(vs, fam, set);
         assert.equal(list.length, 4, `${id} ${pc} ${fam} ${set}`);
         assert.equal(new Set(list.map((v) => v.top)).size, 4, `${id} ${pc} ${fam} ${set}: una nota al canto per rivolto`);
       }
     }
   }
-  assert.deepEqual(V.familiesFor(q('maj')), ['triad']);
-  assert.deepEqual(V.familiesFor(q('dim7')), ['drop2', 'drop3']);
-  assert.deepEqual(V.familiesFor(q('9')), ['drop2', 'drop3']);
+  assert.deepEqual(V.familiesFor(q('maj')), ['triad', 'spread']);
+  assert.deepEqual(V.familiesFor(q('dim7')), ['drop2', 'drop3', 'drop24']);
+  assert.deepEqual(V.familiesFor(q('9')), ['drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster']);
+  assert.deepEqual(V.familiesFor(q('7')), ['shell', 'drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster']);
+  assert.deepEqual(V.familiesFor(q('m7b5')), ['shell', 'drop2', 'drop3', 'drop24', 'rootless', 'quartal', 'cluster']);
 });
 
 test('shell di Cmaj7 come nel capitolo 6', () => {
@@ -72,8 +76,15 @@ test('drop 2 e drop 3: disposizione delle voci', () => {
   // Drop 3 con la fondamentale al basso: la quinta al canto (capitolo 6).
   const d3 = find(V.voicings(q('maj7'), 0), 'drop3', '6432', 0)[0];
   assert.equal(d3.top, 2);
+  // Drop 2 e 4 (ADR 0015): da Do Mi Sol Si scendono Sol e Do → Do Sol Mi Si, corde 6–5–3–2.
+  const d24 = find(V.voicings(q('maj7'), 0), 'drop24', '6532', 0)[0];
+  assert.deepEqual(d24.notes.map((n) => n.tone), [0, 2, 1, 3]);
+  assert.equal(frets(d24), '8.10.9.12');
+  // Drop 2 sulle corde 6–5–4–3: stessa disposizione di 4–3–2–1, due corde più in basso.
+  const low = find(V.voicings(q('maj7'), 0), 'drop2', '6543', 0)[0];
+  assert.deepEqual(low.notes.map((n) => n.tone), [0, 2, 3, 1]);
   // Nona: la nona sostituisce la fondamentale e non va mai al basso.
-  for (const v of V.voicings(q('9'), 0)) {
+  for (const v of V.voicings(q('9'), 0, ['drop2', 'drop3', 'drop24'])) {
     assert.ok(!v.notes.some((n) => n.tone === 0));
     assert.notEqual(v.bass, 4);
   }
@@ -162,7 +173,12 @@ test('deep link degli accordi: andata e ritorno, valori non validi scartati', ()
   // Gli id usati nei link non cambiano.
   assert.deepEqual(X.EXERCISES.map((e) => e.id), ['inv', 'cycle', 'ii-v-i']);
   assert.deepEqual(X.RHYTHMS.map((r) => r.id), ['whole', 'half', 'quarters', 'two-four', 'charleston', 'arp']);
-  assert.deepEqual(V.FAMILIES.map((f) => f.id), ['shell', 'drop2', 'drop3', 'triad']);
+  assert.deepEqual(V.FAMILIES.map((f) => f.id), ['shell', 'triad', 'spread', 'drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster']);
+  // Tensioni alterate (ADR 0015): alt=1 nel link, andata e ritorno.
+  assert.equal(L.encodeChordExercise({ ...X.DEFAULTS, alt: true }).alt, 1);
+  assert.equal(L.encodeChordExercise({ ...X.DEFAULTS }).alt, null);
+  assert.equal(L.decodeChordExercise({ alt: '1' }).alt, true);
+  assert.equal(L.decodeChordExercise({ set: '54321' }).set, '54321');
 });
 
 // ADR 0013, punto 5: ritmo d'attacco sulla linea del tempo.
@@ -173,6 +189,12 @@ const stable = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' &&
 test('comping: il passaggio alla linea del tempo non cambia gli esercizi di Accordi', () => {
   // Impronta calcolata con l'implementazione per accordo precedente (14 novembre 2026), identica
   // anche sull'intera matrice di qualità, toniche, famiglie, corde, esercizi, ritmi e attacchi.
+  // Aggiornata il 19 novembre 2026 (ADR 0015): con drop 2 su 6–5–4–3 e la famiglia drop 2 e 4
+  // cambiano soltanto `set=all` di drop 2 e le famiglie nuove; sugli insiemi di corde esistenti
+  // gli esercizi sono identici a quelli del commit 51a8930 (verificato confrontando le impronte).
+  // Fase 2 (stesso giorno): si aggiungono triadi late e senza fondamentale; sulle famiglie della
+  // fase 1 gli esercizi restano identici (impronta delle sole famiglie precedenti invariata).
+  // Fase 3: strutture superiori, quarte e cluster; famiglie precedenti di nuovo invariate.
   const h = crypto.createHash('sha256');
   for (const id of ['maj', 'm7', '7', 'm7b5', 'dim7', 'maj9']) {
     for (const pc of [0, 10]) {
@@ -189,7 +211,7 @@ test('comping: il passaggio alla linea del tempo non cambia gli esercizi di Acco
       }
     }
   }
-  assert.equal(h.digest('hex'), 'ade3b4f2429cc28ec4fe2dea23c3e6dfe4e8140c486f9d534a25930a7961a5ea');
+  assert.equal(h.digest('hex'), '660eb7361e29ecdb65ea2a79e3724e482b5711bbc6e03c4f8e994b765132bd01');
 });
 
 test('comping: due accordi nella battuta, colpi troncati al cambio e accento per accordo', () => {
@@ -206,4 +228,130 @@ test('comping: due accordi nella battuta, colpi troncati al cambio e accento per
   const arp = X.comp(timeline, X.rhythmDef('arp'), {});
   assert.equal(arp.length, 16);
   assert.deepEqual(arp.filter((e) => e.accent).map((e) => e.beat), [0, 2, 4]);
+});
+
+// ADR 0015, fase 2: triadi late e voicing senza fondamentale.
+test('triadi late: la voce centrale della triade stretta scende di un\'ottava', () => {
+  const tl = (v) => v.notes.map((n) => n.tone);
+  for (const id of ['maj', 'm', 'dim', 'aug']) {
+    for (let pc = 0; pc < 12; pc++) {
+      for (const v of V.voicings(q(id), pc, ['spread'])) {
+        const m = v.notes.map((n) => n.midi);
+        // Un'ottava sopra il basso la triade torna stretta: dentro l'ottava, voci distinte.
+        const close = [m[1], m[0] + 12, m[2]].sort((a, b) => a - b);
+        assert.ok(close[2] - close[0] < 12, `${id} ${pc} ${v.label}`);
+        assert.ok(m[1] - m[0] > 5, `${id} ${pc} ${v.label}: voci gravi distanti`);
+        assert.equal(new Set(tl(v)).size, 3);
+      }
+      // Su 6–4–3 e 4–2–1 tutti e tre i rivolti.
+      for (const set of ['643', '421']) assert.equal(find(V.voicings(q(id), pc, ['spread']), 'spread', set).length, 3, `${id} ${pc} ${set}`);
+    }
+  }
+  // Do maggiore sulle corde 4–2–1: Mi Do Sol, come «C-G-E» del capitolo 3 nel rivolto di terza.
+  assert.equal(frets(find(V.voicings(q('maj'), 0, ['spread']), 'spread', '421', 1)[0]), '2.1.3');
+});
+
+test('senza fondamentale: note guida al basso, niente fondamentale, due forme per gruppo di corde', () => {
+  for (const id of Object.keys(V.ROOTLESS).filter((x) => C.catalog().some((c) => c.id === x))) {
+    const list = V.toneList(q(id));
+    for (let pc = 0; pc < 12; pc++) {
+      const vs = V.voicings(q(id), pc, ['rootless']);
+      for (const set of ['4321', '5432']) assert.equal(find(vs, 'rootless', set).length, 2, `${id} ${pc} ${set}`);
+      for (const v of vs) {
+        const nums = v.notes.map((n) => list[n.tone].number);
+        assert.ok(!nums.includes(1), `${id} ${pc}: niente fondamentale`);
+        assert.ok([3, 6, 7].includes(nums[0]), `${id} ${pc}: nota guida al basso`);
+        assert.ok(nums.includes(3), `${id} ${pc}: la terza c'è sempre`);
+        // Drop 2: alzando di un'ottava la voce grave l'accordo sta dentro l'ottava.
+        const m = v.notes.map((n) => n.midi);
+        const close = [m[1], m[2], m[3], m[0] + 12].sort((a, b) => a - b);
+        assert.ok(close[3] - close[0] < 12, `${id} ${pc} ${v.label}`);
+      }
+    }
+  }
+  // C7 senza fondamentale: 3–♭7–9–13 e ♭7–3–13–9 (la tredicesima al posto della quinta).
+  const lab = (v) => v.notes.map((n) => C.toneToString(V.toneList(q('7'))[n.tone])).join(' ');
+  assert.deepEqual(find(V.voicings(q('7'), 0, ['rootless']), 'rootless', '5432').map(lab).sort(), ['3 b7 9 13', 'b7 3 13 9']);
+  assert.equal(V.familiesFor(q('dim7')).includes('rootless'), false);
+  // I primi indici di toneList coincidono con le note della qualità.
+  assert.deepEqual(V.toneList(q('maj7')).slice(0, 4), q('maj7').tones);
+});
+
+// ADR 0015, fase 3: strutture superiori, voicing per quarte, cluster.
+const pcsOf = (v) => v.notes.map((n) => n.midi % 12);
+const labelsOf = (quality, v) => v.notes.map((n) => C.toneToString(V.toneList(quality)[n.tone]));
+
+test('strutture superiori: nota guida al basso e triade maggiore stretta sopra; alterate solo con alt', () => {
+  for (const id of ['maj7', '6', 'm7', '7', 'maj9', 'm9', '9', '69']) {
+    for (let pc = 0; pc < 12; pc++) {
+      const plain = V.voicings(q(id), pc, ['ust']);
+      const all = V.voicings(q(id), pc, ['ust'], { alt: true });
+      assert.ok(plain.length > 0, `${id} ${pc}`);
+      assert.ok(plain.every((v) => !v.alt));
+      assert.equal(all.length > plain.length, ['7', '9'].includes(id), `${id}: alterate solo sui dominanti`);
+      for (const v of all) {
+        const nums = labelsOf(q(id), v);
+        assert.ok(['3', 'b3', 'b7', '7', '6'].includes(nums[0]), `${id} ${pc}: ${nums}`);
+        const m = v.notes.map((n) => n.midi);
+        const tri = m.slice(1).map((x) => (x - m[1]) % 12).sort((a, b) => a - b);
+        assert.ok([[0, 4, 7], [0, 3, 8], [0, 5, 9]].some((t) => t.join() === tri.join()), `${id} ${pc}: triade maggiore`);
+        assert.ok(m[3] - m[1] < 12, 'triade stretta');
+      }
+    }
+  }
+  assert.deepEqual(V.familiesFor(q('m7b5')).includes('ust'), false);
+  // C7: Si♭ sotto la triade di Re (♭7 9 ♯11 13); alterata ♭VI, tutte al I tasto sulle corde 5–4–3–2.
+  const c7 = V.voicings(q('7'), 0, ['ust'], { alt: true });
+  assert.ok(c7.some((v) => v.label === '4321' && labelsOf(q('7'), v).join(' ') === 'b7 9 #11 13'));
+  const b6 = c7.find((v) => v.upper === '♭VI' && v.label === '5432' && frets(v) === '1.1.1.1');
+  assert.deepEqual(labelsOf(q('7'), b6), ['b7', '#9', 'b13', '1']);
+});
+
+test('voicing per quarte: solo quarte giuste (e la terza della forma So What), basso nota dell\'accordo', () => {
+  for (const quality of C.catalog()) {
+    for (let pc = 0; pc < 12; pc++) {
+      for (const v of V.voicings(quality, pc, ['quartal'])) {
+        const m = v.notes.map((n) => n.midi);
+        const steps = m.slice(1).map((x, i) => x - m[i]);
+        const want = steps.length === 4 ? [5, 5, 5, 4] : steps.map(() => 5);
+        assert.deepEqual(steps, want, `${quality.id} ${pc} ${v.label}`);
+        assert.ok(V.toneList(quality)[v.bass].number <= 7);
+        assert.ok(!v.notes.some((n) => (quality.altered || []).some((t) => C.toneSemitones(t) % 12 === (n.midi - pc + 120) % 12 && !quality.tones.concat(quality.tensions).some((x) => C.toneSemitones(x) % 12 === C.toneSemitones(t) % 12))), 'niente alterate');
+      }
+    }
+  }
+  // Cm7 «So What»: Do Fa Si♭ Mi♭ Sol al III tasto sulle corde 5–4–3–2–1.
+  const sw = find(V.voicings(q('m7'), 0, ['quartal']), 'quartal', '54321', 0)[0];
+  assert.equal(frets(sw), '3.3.3.4.3');
+  assert.deepEqual(labelsOf(q('m7'), sw), ['1', '11', 'b7', 'b3', '5']);
+});
+
+test('cluster: almeno una seconda, note guida presenti, al più quattro per gruppo di corde', () => {
+  for (const quality of C.catalog()) {
+    for (let pc = 0; pc < 12; pc++) {
+      const vs = V.voicings(quality, pc, ['cluster']);
+      for (const set of ['4321', '5432']) assert.ok(find(vs, 'cluster', set).length <= 4);
+      for (const v of vs) {
+        const m = v.notes.map((n) => n.midi);
+        const steps = m.slice(1).map((x, i) => x - m[i]);
+        assert.ok(steps.some((d) => d <= 2), `${quality.id} ${pc} ${frets(v)}`);
+        assert.ok(steps.filter((d) => d === 1).length <= 1);
+        const nums = labelsOf(quality, v);
+        assert.ok(nums.some((x) => x === '3' || x === 'b3'), `${quality.id}: terza`);
+        assert.ok(V.toneList(quality)[v.bass].number <= 7);
+      }
+    }
+  }
+  assert.equal(V.voicings(q('maj'), 0, ['cluster']).length, 0);
+  assert.equal(V.voicings(q('dim7'), 0, ['cluster']).length, 0);
+});
+
+test('esercizi con le famiglie di colore: II–V–I minore senza errori grazie al ripiego', () => {
+  for (const fam of ['ust', 'quartal', 'cluster']) {
+    for (const id of ['m6', 'm7', '7', 'maj7']) {
+      const r = X.build(q(id), L.parseNote('C'), { exId: 'ii-v-i', family: fam, set: 'all', fretFrom: 1, fretTo: 12, alt: true });
+      assert.ok(!r.error, `${fam} ${id}`);
+      assert.equal(r.chords.length, 3);
+    }
+  }
 });

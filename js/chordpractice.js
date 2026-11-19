@@ -118,9 +118,11 @@
 
   /** Etichette (gradi o note) delle note di un accordo dell'esercizio. */
   function labelsOf(c) {
+    // Note della qualità più i colori dei voicing senza fondamentale (V.toneList, ADR 0015).
+    const tones = V.toneList(c.quality);
     return mounted.labelMode === 'note'
-      ? C.spell(c.quality, c.root).map((n) => T.noteToString(n, true))
-      : c.quality.tones.map((t) => C.toneToString(t, true));
+      ? C.spell({ ...c.quality, tones }, c.root).map((n) => T.noteToString(n, true))
+      : tones.map((t) => C.toneToString(t, true));
   }
 
   // ------------------------------------------------------------ Trasporto
@@ -224,6 +226,8 @@
       h('div', { class: 'field-row' },
         select('from', 'Dal tasto', frets, e.fretFrom, (v) => change((st) => { st.fretFrom = Number(v); })),
         select('to', 'Al tasto', frets, e.fretTo, (v) => change((st) => { st.fretTo = Number(v); }))),
+      e.family === 'ust' && toggle('alt', 'Tensioni alterate (♭9, ♯9, ♯11, ♭13) sui dominanti', e.alt,
+        (v) => change((st) => { st.alt = v; })),
       h('p', { class: 'muted small' }, e.exId === 'inv'
         ? 'I rivolti dentro la zona, dal più grave al più acuto.'
         : 'Zona preferita: i voicing ne escono solo se il collegamento lo richiede.'),
