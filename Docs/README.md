@@ -24,7 +24,7 @@
 | [0012](ADR-0012-strumento-accordi.md) | Strumento Accordi: voicing generati dalle formule, conduzione delle voci, pannello proprio | Proposto |
 | [0013](ADR-0013-strumento-progressioni.md) | Strumento Progressioni: griglie del volume, ritmo d'attacco sulla linea del tempo, basso e parti audio | Proposto (non attuato) |
 | [0014](ADR-0014-scale-derivate.md) | Strumento Scale: pentatoniche, scala blues e scale bebop | Accettato |
-| [0015](ADR-0015-famiglie-di-voicing.md) | Strumento Accordi: tutte le famiglie di voicing del capitolo, tensioni per qualità | Proposto (attuato in tre fasi, da accettare dopo la prova) |
+| [0015](ADR-0015-famiglie-di-voicing.md) | Strumento Accordi: tutte le famiglie di voicing del capitolo, tensioni per qualità | Accettato |
 
 Formato: contesto, decisione, alternative scartate, conseguenze.
 Un ADR accettato non si modifica: se la decisione cambia se ne scrive uno nuovo che lo sostituisce.

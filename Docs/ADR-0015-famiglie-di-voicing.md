@@ -1,6 +1,6 @@
 # ADR 0015 — Strumento Accordi: tutte le famiglie di voicing del capitolo, tensioni per qualità
 
-- Stato: Proposto (2026-11-19; decisioni dell'utente al punto 9; fasi 1, 2 e 3 attuate il 2026-11-19; vedi punti 10 e 11)
+- Stato: Accettato (2026-11-19, approvato dall'utente dopo l'attuazione; decisioni dell'utente al punto 9; fasi 1, 2 e 3 attuate il 2026-11-19, vedi punti 10 e 11)
 - Data: 2026-11-19
 - Analisi: [Appunti di Pratica, analisi 024](../../appunti-pratica/Docs/analisi/024-famiglie-di-voicing.md)
 - Collegati: [ADR 0012](ADR-0012-strumento-accordi.md) (estende il punto 1),
