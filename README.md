@@ -19,9 +19,12 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   m7, m(maj7), m7♭5, 7♯5, °7) e di nona (6/9, 9, maj9, m6/9, m9, m(maj9)), con ortografia corretta,
   formula, intervalli e diteggiature in posizione (una per nota di partenza, entro 5 tasti).
   Esercizi propri: lineari, salti, gruppi e rivolti in sequenza, ritmici; partenza da 3ª, 5ª, 7ª.
-- **Accordo casuale** tra le stesse 19 qualità, con i voicing del capitolo «Accordi» del volume come
-  diagrammi: shell su 6–4–3 e 5–4–3 (basso di fondamentale, terza o quinta), drop 2 su 4–3–2–1 e
-  5–4–3–2, drop 3 su 6–4–3–2 e 5–3–2–1, triadi strette. Esercizi: tutti i rivolti su un gruppo di
+- **Accordo casuale** tra le stesse 19 qualità, con le dieci famiglie di voicing del capitolo
+  «Accordi» del volume come diagrammi (ADR 0012, ADR 0015): shell su 6–4–3 e 5–4–3 (basso di
+  fondamentale, terza o quinta), triadi strette e late, drop 2 su 4–3–2–1, 5–4–3–2 e 6–5–4–3, drop 3
+  su 6–4–3–2 e 5–3–2–1, drop 2 e 4 su 6–5–3–2 e 5–4–2–1, senza fondamentale, strutture superiori
+  (con l'opzione «Tensioni alterate» sui dominanti), per quarte (anche la forma «So What») e
+  cluster; etichette delle tensioni (9, 11, 13 e alterazioni). Esercizi: tutti i rivolti su un gruppo di
   corde, ciclo delle quarte, II–V–I, con conduzione delle voci; ritmi d'accompagnamento (minime, 2 e
   4, Charleston, arpeggiato…), accordo pennato o simultaneo.
 - **Progressione casuale** tra le 14 griglie del capitolo «Progressioni» del volume (cadenze, giri e

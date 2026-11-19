@@ -10,6 +10,9 @@
   const chords = C.catalog();
   const FAMILY_ORDER = V.FAMILIES.map((f) => f.id);
   const FAMILIES = C.FAMILIES.map((f) => ({ ...f, label: f.label.replace('Arpeggi', 'Accordi') }));
+  // Mappa delle famiglie di voicing nel capitolo «Accordi» del volume (analisi 024 di appunti-pratica).
+  const CHAPTER = 'https://appunti-pratica-per-chitarra-jazz.readthedocs.io/it/latest/6-accordi.html#famiglie-voicing';
+  const h = window.PanelUI.h;
 
   App.start({
     storageKey: 'gsp:accordi:v1',
@@ -47,8 +50,8 @@
         noteLabels, degreeLabels,
         details: [
           ['Formula', C.formula(q, true)],
-          ['Note', notes.length],
           ['Voicing', voicings.length],
+          ['Nel volume', h('a', { href: CHAPTER, target: '_blank', rel: 'noopener' }, 'capitolo «Accordi»')],
         ],
         semis: C.semitones(q),
         patterns: voicings,
