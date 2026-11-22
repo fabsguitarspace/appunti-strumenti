@@ -189,9 +189,52 @@
     return out;
   }
 
+  // ------------------------------------------------------------ Esercizio (strumento Ritmi)
+
+  /**
+   * Impostazioni dell'esercizio sui ritmi → parametri del link (ADR 0016). `start` è la posizione
+   * di partenza da 1 (prima cella della battuta), oppure `seq` o `rand`; `seed` riproduce le figure
+   * casuali. I valori predefiniti si omettono.
+   */
+  function encodeRhythmExercise(s) {
+    const random = s.start === 'rand' || s.random;
+    return {
+      start: s.start === 'seq' || s.start === 'rand' ? s.start : (Number.isInteger(s.start) ? s.start + 1 : null),
+      vary: s.vary ? 1 : null,
+      omit: s.omit && s.omit !== 'none' ? s.omit : null,
+      seed: random || (s.omit && s.omit !== 'none') ? s.seed : null,
+      accent: s.accent && s.accent !== 'auto' ? s.accent : null,
+      notes: s.notes, feel: s.feel === 'swing' ? 'swing' : null,
+      base: s.base, bass: s.base !== 'none' ? s.bass : null, comp: s.base !== 'none' && s.comp === false ? 0 : null,
+      metro: s.metroMode && s.metroMode !== 'all' ? s.metroMode : null,
+      bpm: s.bpm,
+    };
+  }
+
+  /** Parametri del link → impostazioni parziali dell'esercizio sui ritmi. */
+  function decodeRhythmExercise(p) {
+    const out = {};
+    if (p.start === 'seq' || p.start === 'rand') out.start = p.start;
+    else if (p.start !== undefined) { const n = int(p.start, 1, 16); if (n) out.start = n - 1; }
+    if (p.vary !== undefined) out.vary = p.vary === '1';
+    if (p.omit) out.omit = p.omit;
+    if (p.seed !== undefined) out.seed = int(p.seed, 1, 999999);
+    if (p.accent) out.accent = p.accent;
+    if (p.notes) out.notes = p.notes;
+    if (p.feel) out.feel = p.feel === 'swing' ? 'swing' : 'straight';
+    if (p.base) out.base = p.base;
+    if (p.bass) out.bass = p.bass;
+    if (p.comp !== undefined) out.comp = p.comp !== '0';
+    if (p.metro) out.metroMode = p.metro;
+    if (p.bpm !== undefined) out.bpm = int(p.bpm, 1, 999);
+    for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k];
+    return out;
+  }
+
   const Link = {
     VERSION, parse, build, themeOf, slug, parseNote, noteParam, encodeExercise, decodeExercise,
     encodeChordExercise, decodeChordExercise, encodeProgExercise, decodeProgExercise,
+    encodeRhythmExercise, decodeRhythmExercise,
   };
 
   if (isNode) module.exports = Link;

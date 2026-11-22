@@ -1,7 +1,7 @@
 /**
  * Aiuti comuni ai pannelli Esercizi (ADR 0012, Conseguenze; ADR 0013, punto 9): costruzione del
  * DOM, controlli (select, segmented, toggle, chips), assi richiudibili, asse Opzioni del trasporto,
- * copia negli appunti. Usato da js/chordpractice.js e js/progpractice.js; il pannello delle
+ * copia negli appunti. Usato da js/chordpractice.js, js/progpractice.js e js/rhythmpractice.js; il pannello delle
  * scale (js/practice.js) ha ancora i suoi.
  */
 (function (root) {
@@ -89,7 +89,8 @@
      * @param o { settings, change(fn), onVolume(key, bus, value),
      *            volumes: [[chiave delle impostazioni, bus, etichetta]], bpmMin, bpmMax,
      *            loop: facoltativo, il loop deciso da un altro controllo (Progressioni: «giri»);
-     *                  allora l'interruttore del loop non compare }
+     *                  allora l'interruttore del loop non compare,
+     *            metroModes: facoltativo, [[valore, etichetta]] delle posizioni del click (Ritmi) }
      */
     function optionsAxis(o) {
       const s = o.settings;
@@ -104,7 +105,7 @@
           toggle('metronome', 'Metronomo', s.metronome, (v) => change((st) => { st.metronome = v; })),
           o.loop === undefined && toggle('loop', 'Ripeti (loop)', s.loop, (v) => change((st) => { st.loop = v; })),
           toggle('countin', 'Battuta d\'attacco', s.countIn, (v) => change((st) => { st.countIn = v; }))),
-        select('metromode', 'Click del metronomo', [['all', 'Tutti i battiti'], ['downbeat', 'Solo il primo battito']], s.metroMode,
+        select('metromode', 'Click del metronomo', o.metroModes || [['all', 'Tutti i battiti'], ['downbeat', 'Solo il primo battito']], s.metroMode,
           (v) => change((st) => { st.metroMode = v; })),
         h('div', { class: 'field-row' + (o.volumes.length > 2 ? ' three' : '') },
           o.volumes.map(([key, bus, text]) => range(key.toLowerCase(), text, s[key], (v) => o.onVolume(key, bus, v)))),

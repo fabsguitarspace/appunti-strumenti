@@ -2,8 +2,8 @@
 
 Strumenti web per la pratica alla chitarra, di [Fabrizio's Guitar Space](https://www.youtube.com/@fabsguitarspace),
 collegati al volume [Appunti di Pratica per Chitarra Jazz](https://appunti-pratica-per-chitarra-jazz.readthedocs.io)
-(capitolo «Strumenti per la pratica»). Ci sono gli strumenti **Scale**, **Arpeggi**, **Accordi** e **Progressioni**
-([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md), [ADR 0013](Docs/ADR-0013-strumento-progressioni.md)).
+(capitolo «Strumenti per la pratica»). Ci sono gli strumenti **Scale**, **Arpeggi**, **Accordi**, **Progressioni** e **Ritmi**
+([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md), [ADR 0013](Docs/ADR-0013-strumento-progressioni.md), [ADR 0016](Docs/ADR-0016-strumento-ritmi.md)).
 
 Solo HTML, CSS e JavaScript: **nessun server**, responsive e mobile-first. Repository
 [`fabsguitarspace/appunti-strumenti`](https://github.com/fabsguitarspace/appunti-strumenti), ex
@@ -32,6 +32,14 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   delle voci (anche sul ritorno del loop), basso a fondamentali o walking, note guida, «suona tu»;
   quiz sui gradi romani, giri, forma intera e finale chiuso, volumi separati per accordi, basso, note
   guida e metronomo.
+- **Figura ritmica casuale** tra 64 figure in otto famiglie, dalla pagina «Ritmo melodico» del volume
+  (ADR 0016; procedimenti da Jerry Bergonzi, *Inside Improvisation*, vol. 4, figure originali): crome,
+  terzine e semicrome consecutive con partenza fissa, in sequenza o casuale; note per battuta; ritmi di
+  una battuta; cicli di 3, 5 e 7 pulsazioni sopra il 4/4; marce (5–24 note per battuta, anche terzine di
+  semiminima, settimine e nonine) e cambi di marcia. Griglia ritmica con conteggio e note, tablatura
+  quando la figura sta nella pulsazione; altezze (nota fissa, accordo, sequenza di scala, note guida),
+  swing, note tolte, accenti; base da una delle 14 progressioni con accordi e basso; click del
+  metronomo sul 2 e 4, 1 e 3, solo 1, 3 o 4, o sull'«e» del 2 e del 4.
 - **Ascolto**: suono di chitarra sintetizzato (Karplus-Strong), pulsante ▶ su ogni diteggiatura.
 - **Esercizi** su tre assi combinabili ([catalogo](Docs/esercizi.md)):
   - **Cosa**: lineari, intervalli (dalla 3ª alla 7ª), sequenze (gruppi da 3 a 6, alternati),
@@ -52,7 +60,7 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 
 Online: **https://fabsguitarspace.github.io/appunti-strumenti/** (GitHub Pages dal ramo `main`).
 
-In locale apri `index.html` (scelta dello strumento), `scale.html`, `arpeggi.html`, `accordi.html` o `progressioni.html` nel browser: funziona anche con
+In locale apri `index.html` (scelta dello strumento), `scale.html`, `arpeggi.html`, `accordi.html`, `progressioni.html` o `ritmi.html` nel browser: funziona anche con
 doppio clic, da `file://`. Per clonare: `git clone https://github.com/fabsguitarspace/appunti-strumenti.git`.
 
 | Tasto | Azione |
@@ -83,12 +91,12 @@ Vedi [Docs/architecture.md](Docs/architecture.md) per il diagramma dei moduli e
 [Docs/](Docs/README.md) per ADR, catalogo degli esercizi e piano.
 
 ```
-index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  progressioni.html  css/style.css
+index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  progressioni.html  ritmi.html  css/style.css
 js/theme.js  js/theory.js  js/chords.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
-js/progression.js  js/progressions.js
+js/progression.js  js/progressions.js  js/rhythms.js  js/rhythmpractice.js  js/ritmi.js
 js/voicings.js  js/voiceleading.js  js/chordchart.js  js/chordpractice.js  js/accordi.js
 js/transport.js  js/practice.js  js/app.js (guscio comune)  js/scale.js  js/arpeggi.js
-js/exercises/  pool · melodic · rhythm · fingering · presets · comping · progcomp · bass
+js/exercises/  pool · melodic · rhythm · fingering · presets · comping · progcomp · bass · rhythmline
 js/audio/      ks · scheduler · engine
 js/tab/        layout · render
 tests/         *.test.js (node:test, nessuna dipendenza)

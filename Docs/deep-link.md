@@ -130,6 +130,44 @@ Esempio: blues di base in Fa, sul 2 e sul 4, walking, note guida, due giri a 60 
 progressioni.html#v=1&prog=blues&key=F&rhythm=two-four&bass=walk&fam=shell&set=all&from=1&to=10&study=guide&giri=2&bpm=60
 ```
 
+## Strumento Ritmi (`ritmi.html`)
+
+| Chiave | Valori | Note |
+|---|---|---|
+| `rhythm` | id della figura (`js/rhythms.js`), elenco sotto | va con `key` |
+| `key` | nota, es. `C`, `Bb`, `F#` | tonalità della base e delle altezze |
+| `start` | `1`–`16`, `seq`, `rand` | partenza delle note consecutive: cella della battuta da `1` (le crome hanno 8 celle, le terzine 12, le semicrome 16), tutte le partenze in sequenza, o casuale |
+| `vary` | `1` | note per battuta: un ritmo diverso in ogni battuta (omesso = lo stesso ritmo) |
+| `omit` | `one`, `rand` | togli una nota per girone (mai la prima), oppure pause casuali (omesso = tutte le note) |
+| `seed` | `1`–`999999` | seme delle figure casuali e delle note tolte: lo stesso seme dà la stessa figura |
+| `accent` | `group`, `cycle`, `beat`, `none` | accenti (omesso = secondo la figura) |
+| `notes` | `perc`, `chord`, `scale`, `guide` | altezze: nota fissa, note dell'accordo, sequenza di scala, note guida |
+| `feel` | `swing` | crome swing (omesso = regolari) |
+| `base` | `none` oppure id di una progressione (come `prog` di Progressioni) | base |
+| `bass` | `walk`, `roots`, `off` | basso della base |
+| `comp` | `0` | accordi della base spenti |
+| `metro` | `two-four`, `one-three`, `downbeat`, `three`, `four`, `and-two-four` | posizione del click (omesso = tutti i battiti) |
+| `bpm` | `30`–`300` | tempo |
+
+Codice: `Link.encodeRhythmExercise`/`decodeRhythmExercise`; id fissati da `tests/ritmi.test.js`.
+
+Identificatori delle figure:
+`crome-2` … `crome-7` · `terzine-2` … `terzine-7` · `semicrome-3` … `semicrome-7` · `note-1` … `note-7` ·
+`battere` `levare` `charleston` `charleston-levare` `risposta` `sincope` `anticipo` `domanda` `cascata`
+`rimbalzo` `controtempo` `eco` `arrivo` `spinta` ·
+`ciclo-3a` `ciclo-3b` `ciclo-3c` `ciclo-3d` `ciclo-5a` `ciclo-5b` `ciclo-7a` `ciclo-7b` ·
+`marcia-5` `marcia-6` `marcia-7` `marcia-8` `marcia-9` `marcia-10` `marcia-12` `marcia-14` `marcia-16`
+`marcia-20` `marcia-24` ·
+`crome-terzine` `terzine-semicrome` `semicrome-sestine` `terzine-quintine` `semiminima3-crome`
+`mezza-battuta` `semicrome-settimine`
+
+Esempio: quattro crome consecutive dall'«e» del 4 sul II–V–I in Fa, note dell'accordo, click sul 2 e
+sul 4, 80 BPM:
+
+```
+ritmi.html#v=1&rhythm=crome-4&key=F&start=8&notes=chord&base=ii-v-i&bass=walk&metro=two-four&bpm=80
+```
+
 ### Identificatori delle scale
 
 `ionica` `dorica` `frigia` `lidia` `misolidia` `eolia` `locria` ·

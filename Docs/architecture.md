@@ -10,11 +10,12 @@ puri si caricano anche da Node per i test. È una suite di strumenti con nucleo 
 
 | Pagina | Contenuto |
 |---|---|
-| `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi e Progressioni), ritorno al volume |
+| `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi, Progressioni e Ritmi), ritorno al volume |
 | `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS o in posizione (pentatoniche e blues, ADR 0014), esercizi, trasporto |
 | `arpeggi.html` | strumento Arpeggi: arpeggio casuale (19 qualità), diteggiature in posizione, rivolti, esercizi, trasporto |
 | `accordi.html` | strumento Accordi: accordo casuale, voicing shell/triadi strette e late/drop/senza fondamentale/strutture superiori/quarte/cluster in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
 | `progressioni.html` | strumento Progressioni: progressione casuale del capitolo 7, griglia, accompagnamento, basso, note guida, quiz sui gradi romani, trasporto |
+| `ritmi.html` | strumento Ritmi (ADR 0016): figura ritmica casuale della pagina «Ritmo melodico», griglia ritmica, linea sopra una base, click spostato, quiz di lettura, trasporto |
 
 Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti»).
 
@@ -44,6 +45,8 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
                                                     ▲  App.start(definizione)
                                      scale.js · arpeggi.js · accordi.js (definizioni degli strumenti)
    Accordi: chordpractice.js (ChordPractice, stessa interfaccia di Practice) + chordchart.js (diagrammi)
+   Ritmi: rhythms.js (Rhythms: figure) ─► exercises/rhythmline.js (RhythmLine: linea + base, via ProgComp)
+          └─► rhythmpractice.js (RhythmPractice, stessa interfaccia) ◄── ritmi.js (definizione)
 ```
 
 | Modulo | Responsabilità | Node |
@@ -66,7 +69,7 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `exercises/fingering.js` | Viterbi con finestra della mano e profili → corda e tasto | sì |
 | `exercises/presets.js` | cataloghi per strumento (`Presets`, `Presets.ARPEGGI`, `makeCatalog`, [esercizi.md](esercizi.md)) e pipeline `build()` | sì |
 | `audio/ks.js` | buffer Karplus-Strong esteso: pizzico, perdita per altezza, allpass frazionario, due polarizzazioni | sì |
-| `audio/scheduler.js` | lookahead, loop, count-in, metronomo, trainer, coda visiva | sì (clock finto) |
+| `audio/scheduler.js` | lookahead, loop, count-in, metronomo (anche sul 2 e 4, solo 4, «e» del 2 e del 4: `METRO`, ADR 0016), trainer, coda visiva | sì (clock finto) |
 | `audio/engine.js` | AudioContext, cache delle voci (strati di velocity, varianti alternate), cassa armonica e riverbero, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), smorzamento per parte e corda, click | no |
 | `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; note impilate; tab ASCII | sì |
 | `tab/render.js` | SVG della tablatura | no |
@@ -81,6 +84,10 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `progpractice.js` | pannello Esercizi delle progressioni: Cosa/Come/Dove/Studio/Opzioni, viste griglia/tastiera dell'accordo corrente/tablatura, volumi delle parti, «Copia link»; `gridView` serve anche al quiz | no |
 | `progressioni.js` | definizione dello strumento Progressioni (link con `key`, quiz con la griglia in gradi romani, nessuna sezione di diteggiature) | no |
 | `chordchart.js` | SVG del diagramma d'accordo verticale | no |
+| `rhythms.js` | figure ritmiche come gironi di celle (ADR 0016): catalogo di 64 figure in otto famiglie, generatori con seme (partenze, note per battuta, note tolte), realizzazione sulle battute (attacchi, pause, accenti, inizio del ciclo), durata con la base, conteggio | sì |
+| `exercises/rhythmline.js` | esercizio dello strumento Ritmi: altezze sugli attacchi (nota fissa, accordo, sequenza di scala, note guida), swing, base da `ProgComp` (accordi su `study`, basso), eventi per la tablatura | sì |
+| `rhythmpractice.js` | pannello Esercizi dei ritmi: Cosa/Come/Base/Opzioni, griglia ritmica (anche per il quiz), tablatura, «Copia link» | no |
+| `ritmi.js` | definizione dello strumento Ritmi (link con `key`, tonalità con i bemolli, quiz con la griglia senza conteggio) | no |
 
 ## Principi
 
@@ -114,6 +121,9 @@ salvate; gli strumenti nuovi useranno `gsp:<strumento>:v1`.
 | `gsp:arpeggi:practice:v1` | `localStorage` | Arpeggi: impostazioni dell'esercizio |
 | `gsp:accordi:v1` | `localStorage` | Accordi: famiglie, fondamentale, opzioni, accordo corrente, cronologia |
 | `gsp:accordi:practice:v1` | `localStorage` | Accordi: impostazioni dell'esercizio |
+| `gsp:progressioni:v1`, `gsp:progressioni:practice:v1` | `localStorage` | Progressioni: estrazione e impostazioni dell'esercizio |
+| `gsp:ritmi:v1` | `localStorage` | Ritmi: famiglie, tonalità, opzioni, figura corrente, cronologia |
+| `gsp:ritmi:practice:v1` | `localStorage` | Ritmi: impostazioni dell'esercizio (partenza, seme, altezze, base, click, viste) |
 | `gsp:theme` | `sessionStorage` | tema scelto dal link (`dark`/`light`/`auto`), valido per la scheda |
 
 ## Ordine di caricamento (`scale.html`)
@@ -153,5 +163,8 @@ al posto di `js/scale.js`.
 `progressioni.html` carica gli stessi moduli di Accordi tranne `chordchart` e `chordpractice`, più
 `progression`, `progressions`, `exercises/bass`, `exercises/progcomp`, `progpractice` e
 `progressioni` al posto di `accordi`.
+
+`ritmi.html` carica gli stessi moduli di Progressioni più `rhythms` ed `exercises/rhythmline` dopo
+`exercises/progcomp`, e `rhythmpractice` e `ritmi` al posto di `progpractice` e `progressioni`.
 
 `index.html` carica solo `theme.js` e il CSS.

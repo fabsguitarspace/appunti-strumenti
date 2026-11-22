@@ -29,6 +29,7 @@ Dal 19 novembre 2026, su richiesta dell'utente: `note-di-rilascio.html`, collega
 | [0013](ADR-0013-strumento-progressioni.md) | Strumento Progressioni: griglie del volume, ritmo d'attacco sulla linea del tempo, basso e parti audio | Proposto (non attuato) |
 | [0014](ADR-0014-scale-derivate.md) | Strumento Scale: pentatoniche, scala blues e scale bebop | Accettato |
 | [0015](ADR-0015-famiglie-di-voicing.md) | Strumento Accordi: tutte le famiglie di voicing del capitolo, tensioni per qualità | Accettato |
+| [0016](ADR-0016-strumento-ritmi.md) | Strumento Ritmi: figure come gironi di celle, linea sopra una base, click spostato | Proposto |
 
 Formato: contesto, decisione, alternative scartate, conseguenze.
 Un ADR accettato non si modifica: se la decisione cambia se ne scrive uno nuovo che lo sostituisce.

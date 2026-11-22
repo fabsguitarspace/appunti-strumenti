@@ -668,3 +668,54 @@ a.tool-card:hover { background: var(--surface-2); }
   .view-grid { break-inside: avoid; }
   .pg-chord.is-playing { background: none; color: inherit; }
 }
+
+/* ------------------------------------------------------------ Ritmi (ADR 0016) */
+
+.rhythm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 0; }
+@media (min-width: 900px) { .rhythm-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.rg-bar {
+  position: relative; display: grid; gap: 2px; padding: 16px 6px 4px;
+  border-left: 2px solid var(--text); min-width: 0;
+}
+.rg-bar:nth-child(2n) { border-right: 2px solid var(--text); }
+@media (min-width: 900px) {
+  .rg-bar:nth-child(2n) { border-right: 0; }
+  .rg-bar:nth-child(4n), .rg-bar:last-child { border-right: 2px solid var(--text); }
+}
+.rg-bar:last-child { border-right: 2px solid var(--text); }
+.rg-num { position: absolute; top: 1px; left: 4px; font-size: .64rem; color: var(--muted); font-family: var(--mono); }
+.rg-chords { position: relative; height: 1.2em; margin-left: 6px; margin-right: 0; }
+.rg-chord {
+  position: absolute; top: -2px; font-size: .8rem; font-weight: 650; white-space: nowrap;
+  transform: translateX(2px);
+}
+.rg-beats { display: flex; gap: 3px; min-width: 0; }
+.rg-span {
+  display: flex; min-width: 0; padding: 2px 0; border-radius: 6px;
+  background: var(--surface-2);
+}
+.rg-span.rg-cycle { box-shadow: inset 3px 0 0 var(--accent); }
+.rg-cell { flex: 1 1 0; min-width: 0; display: grid; justify-items: center; align-content: start; gap: 2px; }
+.rg-mark { display: block; width: 100%; height: 14px; position: relative; }
+.rg-cell.is-x .rg-mark::before {
+  content: ''; position: absolute; left: 50%; top: 50%; width: min(12px, 80%); aspect-ratio: 1;
+  transform: translate(-50%, -50%); border-radius: 50%; background: var(--note);
+}
+.rg-cell.is-x.is-acc .rg-mark::before { background: var(--accent); width: min(14px, 92%); }
+.rg-cell.is-sus .rg-mark::before {
+  content: ''; position: absolute; left: -1px; right: -1px; top: 50%; height: 4px;
+  transform: translateY(-50%); background: var(--note); opacity: .55;
+}
+.rg-cell.is-x + .rg-cell.is-sus .rg-mark::before { left: -50%; }
+.rg-cell.is-rest .rg-mark::before {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; border-radius: 50%;
+  transform: translate(-50%, -50%); background: var(--fb-line); opacity: .6;
+}
+.rg-count { font-size: .66rem; line-height: 1; color: var(--muted); font-family: var(--mono); }
+.rg-name { font-size: .64rem; line-height: 1; color: var(--note); font-weight: 600; white-space: nowrap; }
+.rg-cell.is-playing .rg-mark::before { background: var(--playing); transform: translate(-50%, -50%) scale(1.25); }
+.rg-bar.is-playing { background: color-mix(in srgb, var(--playing) 10%, transparent); }
+.quiz .rhythm-grid { margin: 12px 0; }
+@media print {
+  .rg-bar.is-playing { background: none; }
+}

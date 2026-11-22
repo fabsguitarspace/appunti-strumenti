@@ -9,6 +9,20 @@
   const EPS = 1e-9;
 
   /**
+   * Posizioni del click nella battuta di 4/4, per modalità del metronomo (ADR 0016: le posizioni
+   * oltre a 'all' e 'downbeat' servono allo strumento Ritmi). Il count-in suona sempre tutti i battiti.
+   */
+  const METRO = {
+    all: [0, 1, 2, 3],
+    downbeat: [0],
+    'two-four': [1, 3],
+    'one-three': [0, 2],
+    three: [2],
+    four: [3],
+    'and-two-four': [1.5, 3.5],
+  };
+
+  /**
    * @param deps {
    *   now(): secondi,  setTimer(fn, ms), clearTimer(id),
    *   onNote(ev, when, dur),  onClick(when, downbeat),  onEnd(),  onTempo(bpm),
@@ -49,6 +63,7 @@
       anchor = { time: deps.now() + startDelay, beat: startBeat, bpm: opts.bpm };
       iter = 0;
       idx = 0;
+      clickPos = METRO[opts.metroMode] && opts.meter === 4 ? METRO[opts.metroMode] : null;
       nextClick = startBeat;
       visual = [];
       pending = null;
@@ -58,6 +73,22 @@
     }
 
     let pending = null; // cambio di tempo del trainer, applicato all'inizio del giro
+    let clickPos = null; // posizioni del click nella battuta (null: ogni battito)
+
+    /** Battito del click dopo `b`: ogni battito nel count-in, poi le posizioni della modalità. */
+    function clickAfter(b) {
+      const next = Math.floor(b + EPS) + 1;
+      if (next < 0 || !clickPos || !opts.metronome) return next;
+      const meter = opts.meter;
+      const bar = Math.floor((b + EPS) / meter);
+      for (let k = bar; k <= bar + 1; k++) {
+        for (const p of clickPos) {
+          const c = k * meter + p;
+          if (c > b + EPS && c >= 0) return c;
+        }
+      }
+      return (bar + 2) * meter + clickPos[0];
+    }
 
     function nextNoteBeat() {
       if (idx >= events.length) {
@@ -97,12 +128,11 @@
           idx++;
         } else {
           // Click: count-in sempre, poi solo con il metronomo attivo.
-          const pos = ((Math.round(cb) % opts.meter) + opts.meter) % opts.meter;
-          const downbeat = pos === 0;
-          if (cb < 0 || (opts.metronome && (opts.metroMode !== 'downbeat' || downbeat))) {
-            if (deps.onClick) deps.onClick(beatToTime(cb), downbeat);
-          }
-          nextClick += 1;
+          const pos = ((cb % opts.meter) + opts.meter) % opts.meter;
+          const downbeat = Math.abs(pos) < EPS;
+          const audible = cb < 0 || (opts.metronome && (clickPos ? true : opts.metroMode !== 'downbeat' || downbeat));
+          if (audible && deps.onClick) deps.onClick(beatToTime(cb), downbeat);
+          nextClick = clickAfter(cb);
         }
       }
       if (!opts.loop && timeToBeat(deps.now()) >= endBeat) {
@@ -141,7 +171,7 @@
     };
   }
 
-  const Scheduler = { create };
+  const Scheduler = { create, METRO };
 
   if (isNode) module.exports = Scheduler;
   else root.Scheduler = Scheduler;
