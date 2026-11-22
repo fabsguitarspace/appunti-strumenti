@@ -5,9 +5,9 @@
  * (`.`). Così crome, terzine, terzine di semiminima, quintine, settimine e nonine stanno nello
  * stesso modello, e la griglia, l'audio e il conteggio derivano dagli stessi dati.
  *
- * Le famiglie riprendono i procedimenti di Jerry Bergonzi, «Inside Improvisation», vol. 4,
- * «Melodic Rhythms» (gruppi di note consecutive spostati nella battuta, note per battuta, figure
- * in 3/4, 5/4 e 7/4 sopra il 4/4, «marce» e cambi di marcia); le figure sono originali.
+ * Le famiglie seguono le sezioni della pagina «Ritmo melodico» del volume (gruppi di note
+ * consecutive spostati nella battuta, note per battuta, figure in 3/4, 5/4 e 7/4 sopra il 4/4,
+ * «marce» e cambi di marcia); le figure sono originali.
  * Modulo puro: si carica anche in Node per i test.
  */
 (function (root) {

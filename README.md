@@ -33,7 +33,7 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   quiz sui gradi romani, giri, forma intera e finale chiuso, volumi separati per accordi, basso, note
   guida e metronomo.
 - **Figura ritmica casuale** tra 64 figure in otto famiglie, dalla pagina «Ritmo melodico» del volume
-  (ADR 0016; procedimenti da Jerry Bergonzi, *Inside Improvisation*, vol. 4, figure originali): crome,
+  (ADR 0016; figure originali): crome,
   terzine e semicrome consecutive con partenza fissa, in sequenza o casuale; note per battuta; ritmi di
   una battuta; cicli di 3, 5 e 7 pulsazioni sopra il 4/4; marce (5–24 note per battuta, anche terzine di
   semiminima, settimine e nonine) e cambi di marcia. Griglia ritmica con conteggio e note, tablatura
