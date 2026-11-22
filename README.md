@@ -51,7 +51,8 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 - **Viste sincronizzate**: tastiera con il percorso e la nota corrente, **tablatura** con ritmo e
   accenti (copia come testo, stampa), elenco dei gradi o delle note.
 - **Trasporto**: Play/Stop, BPM, tap tempo, metronomo, battuta d'attacco, loop,
-  **trainer di velocità** (+N BPM ogni M giri), volumi separati.
+  **trainer di velocità** (+N BPM ogni M giri), volumi separati;
+  **volume generale** e «muto» dal pulsante 🔈 della barra, ricordati per tutti gli strumenti.
 - **Link dell'esercizio**: «Copia link dell'esercizio» produce un indirizzo che riapre scala,
   tonica ed esercizio ([schema dei deep link](Docs/deep-link.md)); il volume lo usa per gli esercizi pronti.
 - Impostazioni, scala corrente e cronologia ricordate nel browser.
@@ -77,9 +78,9 @@ comunque la riproduzione).
 
 | Larghezza | Impostazioni | Cronologia | Trasporto | Diteggiature |
 |---|---|---|---|---|
-| < 640px | drawer | drawer | barra in basso: 🔀 · Play · BPM | 1 colonna |
-| ≥ 640px | drawer | drawer | barra in basso (+ Tap) | 2 colonne |
-| ≥ 1024px | colonna | drawer | barra agganciata in alto: casuale · Play · BPM · Tap | 2 colonne |
+| < 640px | drawer | drawer | barra in basso: 🔀 · Play · BPM · Volume | 1 colonna |
+| ≥ 640px | drawer | drawer | barra in basso (+ Tap) · Volume | 2 colonne |
+| ≥ 1024px | colonna | drawer | barra agganciata in alto: casuale · Play · BPM · Tap · Volume | 2 colonne |
 | ≥ 1280px | colonna | colonna | barra agganciata in alto | 2 (3 da 1600px) |
 
 Tema «Appunti» (colori del volume Appunti di Pratica), chiaro/scuro automatico o dal parametro `theme`

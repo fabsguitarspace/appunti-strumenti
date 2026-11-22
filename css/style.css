@@ -424,6 +424,34 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
 .t-tap { flex: none; height: 56px; padding: 0 12px; border: 0; border-radius: 16px; background: var(--surface-2); font-weight: 600; }
 @media (max-width: 419px) { .transport-slot .t-tap { display: none; } }
 
+/* Volume generale: pulsante con l'altoparlante e pannellino sopra la barra (sotto su desktop) */
+.t-vol { position: relative; flex: none; }
+.t-vol-btn {
+  display: grid; place-items: center; width: 48px; height: 56px;
+  border: 0; border-radius: 16px; background: var(--surface-2); color: var(--text);
+}
+.t-vol-btn:hover { background: color-mix(in srgb, var(--text) 8%, var(--surface-2)); }
+.t-vol-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.t-vol-btn .spk { fill: currentColor; }
+.t-vol-btn .x, .t-vol-btn[data-level="off"] .w1, .t-vol-btn[data-level="off"] .w2, .t-vol-btn[data-level="low"] .w2 { display: none; }
+.t-vol-btn[data-level="off"] .x { display: inline; }
+.t-vol-btn.is-muted { color: var(--muted); }
+.t-vol-pop {
+  position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 30;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px;
+  width: min(280px, calc(100vw - 2 * var(--gutter))); padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow);
+}
+.t-vol-pop[hidden] { display: none; }
+.t-vol-label { font-size: .78rem; font-weight: 650; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.t-vol-val { justify-self: end; font-variant-numeric: tabular-nums; font-weight: 600; }
+.t-vol-pop input[type="range"] { grid-column: 1 / -1; width: 100%; height: 32px; margin: 0; accent-color: var(--accent); }
+.t-vol-mute {
+  grid-column: 1 / -1; min-height: 40px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface); color: var(--text); font-weight: 600;
+}
+.t-vol-mute[aria-pressed="true"] { background: var(--surface-2); }
+
 /* --- Ascolto rapido sulle card delle diteggiature */
 .pattern figcaption { justify-content: space-between; flex-wrap: nowrap; align-items: center; }
 .cap-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
@@ -574,7 +602,8 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
   body.has-transport .draw-bar .draw-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
   body.has-transport .transport-slot { flex: 0 1 460px; }
   body.has-transport .draw-bar .t-play { min-height: 48px; }
-  body.has-transport .draw-bar .t-bpm, body.has-transport .draw-bar .t-tap { height: 48px; }
+  body.has-transport .draw-bar .t-bpm, body.has-transport .draw-bar .t-tap, body.has-transport .draw-bar .t-vol-btn { height: 48px; }
+  body.has-transport .draw-bar .t-vol-pop { top: calc(100% + 10px); bottom: auto; }
   body.has-transport .draw-bar .hint { flex-basis: 100%; margin: 0; font-size: .75rem; }
 }
 

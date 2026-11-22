@@ -1,6 +1,7 @@
 /**
  * Trasporto comune agli strumenti (ADR 0010, punto 2): barra Play · BPM · Tap, scheduler,
- * metronomo, loop, count-in, trainer di velocità, volumi, wake lock e ciclo di evidenziazione.
+ * metronomo, loop, count-in, trainer di velocità, volumi, volume generale, wake lock e ciclo di
+ * evidenziazione.
  * Lo strumento fornisce le impostazioni e riceve l'evento corrente da evidenziare.
  * Usa Web Audio e DOM: non si carica in Node (la logica pura è in audio/scheduler.js).
  */
@@ -11,6 +12,32 @@
 
   const BPM_MIN = 30;
   const BPM_MAX = 300;
+  // Volume generale: comune a tutti gli strumenti, ricordato nel browser.
+  const VOLUME_KEY = 'appunti-strumenti.volume';
+  const clampVol = (v) => Math.max(0, Math.min(1, Number.isFinite(v) ? v : 1));
+  function loadVolume() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(VOLUME_KEY));
+      if (raw && typeof raw === 'object') return { level: clampVol(Number(raw.level)), muted: !!raw.muted };
+    } catch (_) { /* ignora */ }
+    return { level: 1, muted: false };
+  }
+  function saveVolume(v) {
+    try { localStorage.setItem(VOLUME_KEY, JSON.stringify(v)); } catch (_) { /* ignora */ }
+  }
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  function speakerIcon() {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>'
+      + '<path class="w1" d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/>'
+      + '<path class="w2" d="M18 7a7 7 0 0 1 0 10"/>'
+      + '<path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/>';
+    return svg;
+  }
+
   const clampBpm = (b) => Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(Number(b) || 80)));
 
   function h(tag, attrs = {}, ...children) {
@@ -67,7 +94,55 @@
       h('span', { class: 't-bpm-box' }, out, h('small', {}, 'BPM')),
       h('button', { type: 'button', 'aria-label': 'Accelera di 5 BPM', onclick: () => bumpBpm(5) }, '+'));
     const tapBtn = h('button', { type: 'button', class: 't-tap', onclick: () => tap() }, 'Tap');
-    const el = h('div', { class: 'transport' }, play, bpmGroup, tapBtn);
+
+    // Volume generale: pulsante con l'altoparlante e pannellino con cursore e «muto».
+    const vol = loadVolume();
+    const volId = 't-vol-' + Math.random().toString(36).slice(2, 8);
+    const volBtn = h('button', {
+      type: 'button', class: 't-vol-btn', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': volId,
+      onclick: () => setVolOpen(volPop.hidden),
+    }, speakerIcon());
+    const volRange = h('input', { type: 'range', min: 0, max: 100, step: 5, 'aria-label': 'Volume generale' });
+    const volOut = h('output', { class: 't-vol-val' });
+    const muteBtn = h('button', { type: 'button', class: 't-vol-mute', onclick: () => setVolume({ muted: !vol.muted }) });
+    volRange.addEventListener('input', () => setVolume({ level: Number(volRange.value) / 100, muted: false }));
+    const volPop = h('div', { class: 't-vol-pop', id: volId, role: 'group', 'aria-label': 'Volume', hidden: true },
+      h('span', { class: 't-vol-label' }, 'Volume'), volOut, volRange, muteBtn);
+    const volWrap = h('div', { class: 't-vol' }, volBtn, volPop);
+    const el = h('div', { class: 'transport' }, play, bpmGroup, tapBtn, volWrap);
+
+    function setVolume(patch) {
+      Object.assign(vol, patch);
+      vol.level = clampVol(vol.level);
+      saveVolume(vol);
+      AudioEngine.setMaster(vol.muted ? 0 : vol.level);
+      renderVolume();
+    }
+
+    function renderVolume() {
+      const pct = Math.round(vol.level * 100);
+      const silent = vol.muted || pct === 0;
+      volRange.value = pct;
+      volOut.textContent = vol.muted ? 'muto' : pct + '%';
+      muteBtn.textContent = vol.muted ? 'Riattiva' : 'Muto';
+      muteBtn.setAttribute('aria-pressed', String(vol.muted));
+      volBtn.dataset.level = silent ? 'off' : pct < 50 ? 'low' : 'high';
+      volBtn.setAttribute('aria-label', 'Volume: ' + (vol.muted ? 'muto' : pct + '%'));
+      volBtn.classList.toggle('is-muted', silent);
+    }
+
+    function setVolOpen(open) {
+      volPop.hidden = !open;
+      volBtn.setAttribute('aria-expanded', String(open));
+      if (open) volRange.focus();
+    }
+
+    document.addEventListener('pointerdown', (e) => { if (!volPop.hidden && !volWrap.contains(e.target)) setVolOpen(false); });
+    volWrap.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !volPop.hidden) { e.stopPropagation(); setVolOpen(false); volBtn.focus(); }
+    });
+    AudioEngine.setMaster(vol.muted ? 0 : vol.level);
+    renderVolume();
 
     function render() {
       out.textContent = deps.options().bpm;
@@ -180,6 +255,8 @@
       el, render, setPlayButton, setBpm, bumpBpm, tap, start, stop,
       playing: () => playing,
       setVolumes: (v) => AudioEngine.setVolumes(v),
+      volume: () => ({ ...vol }),
+      setVolume,
     };
   }
 

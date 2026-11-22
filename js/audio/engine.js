@@ -4,6 +4,7 @@
  * Si attiva solo dentro un gesto dell'utente (unlock), come richiedono i browser mobili.
  * Parti (ADR 0013, punto 7): ogni nota appartiene a una parte ('comp', predefinita, 'bass',
  * 'study') con bus e volume propri; lo smorzamento per corda vale dentro la stessa parte.
+ * Sopra i bus c'è il volume generale (setMaster), regolato dalla barra di trasporto.
  */
 (function (root) {
   'use strict';
@@ -20,6 +21,8 @@
   const active = new Set();
   const voices = new Map(); // parte:corda → voce in corso (smorzamento per corda)
   let volumes = { notes: 0.8, bass: 0.8, study: 0.5, click: 0.6 };
+  let level = 1; // volume generale (barra di trasporto), moltiplica il master
+  const MASTER = 0.9;
   const busOf = (part) => (part === 'bass' ? bassBus : part === 'study' ? studyBus : noteBus);
 
   function supported() {
@@ -38,7 +41,7 @@
       comp.threshold.value = -10;
       comp.ratio.value = 4;
       master = ctx.createGain();
-      master.gain.value = 0.9;
+      master.gain.value = MASTER * level;
       master.connect(comp).connect(ctx.destination);
       const body = createBody(); // cassa armonica e riverbero: solo per le note, non per il click
       noteBus = ctx.createGain();
@@ -224,8 +227,15 @@
     if (clickBus) clickBus.gain.value = volumes.click;
   }
 
+  /** Volume generale 0..1 (tutte le parti e il metronomo), con una rampa breve contro i click. */
+  function setMaster(v) {
+    if (typeof v !== 'number' || !Number.isFinite(v)) return;
+    level = Math.max(0, Math.min(1, v));
+    if (master) master.gain.setTargetAtTime(MASTER * level, ctx.currentTime, 0.015);
+  }
+
   const now = () => (ctx ? ctx.currentTime : 0);
   const latency = () => (ctx ? (ctx.outputLatency || ctx.baseLatency || 0) : 0);
 
-  root.AudioEngine = { supported, unlock, prepare, playNote, click, stopAll, setVolumes, now, latency, get ready() { return !!ctx; } };
+  root.AudioEngine = { supported, unlock, prepare, playNote, click, stopAll, setVolumes, setMaster, now, latency, get ready() { return !!ctx; } };
 })(globalThis);
