@@ -231,10 +231,48 @@
     return out;
   }
 
+  // ------------------------------------------------------------ Esercizio (strumento Chord melody)
+
+  /**
+   * Impostazioni dell'esercizio di chord melody → parametri del link (ADR 0018, punto 10). Il
+   * materiale (`prog` o `chord`) e la tonalità (`key`) li aggiunge il guscio. `seed` solo dove
+   * serve (cella variata, quiz).
+   */
+  function encodeChordMelodyExercise(s) {
+    const onChord = s.material === 'chord';
+    return {
+      ex: onChord ? s.cex : s.ex,
+      line: onChord ? null : s.line,
+      cell: onChord ? null : s.cell,
+      seed: (!onChord && s.cell === 'vary') || (onChord && s.cex === 'quiz-top') ? s.seed : null,
+      fam: s.family, string: s.string, from: s.fretFrom, to: s.fretTo,
+      attack: s.attack, study: s.study, bpm: s.bpm,
+    };
+  }
+
+  /** Parametri del link → impostazioni parziali dell'esercizio di chord melody. */
+  function decodeChordMelodyExercise(p) {
+    const out = {};
+    if (p.ex === 'line' || p.ex === 'trio') out.ex = p.ex;
+    if (p.ex === 'tops' || p.ex === 'same-top' || p.ex === 'quiz-top') out.cex = p.ex;
+    if (p.line) out.line = p.line;
+    if (p.cell) out.cell = p.cell;
+    if (p.seed !== undefined) out.seed = int(p.seed, 1, 999999);
+    if (p.fam) out.family = p.fam;
+    if (p.string === '1' || p.string === '2' || p.string === '12') out.string = p.string;
+    if (p.from !== undefined) out.fretFrom = int(p.from, 1, 20);
+    if (p.to !== undefined) out.fretTo = int(p.to, 1, 20);
+    if (p.attack) out.attack = p.attack;
+    if (p.study) out.study = p.study;
+    if (p.bpm !== undefined) out.bpm = int(p.bpm, 1, 999);
+    for (const k of Object.keys(out)) if (out[k] === undefined) delete out[k];
+    return out;
+  }
+
   const Link = {
     VERSION, parse, build, themeOf, slug, parseNote, noteParam, encodeExercise, decodeExercise,
     encodeChordExercise, decodeChordExercise, encodeProgExercise, decodeProgExercise,
-    encodeRhythmExercise, decodeRhythmExercise,
+    encodeRhythmExercise, decodeRhythmExercise, encodeChordMelodyExercise, decodeChordMelodyExercise,
   };
 
   if (isNode) module.exports = Link;

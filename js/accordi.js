@@ -37,10 +37,13 @@
       const voicingDegrees = tones.map((t) => C.toneToString(t, true));
       const voicingNotes = C.spell({ ...q, tones }, root).map((n) => T.noteToString(n, true));
       // Con le alterate (strutture superiori dei dominanti, ADR 0015) in un gruppo a parte.
+      // Un gruppo per insieme di corde: a parità di corda del basso, l'ordine degli insiemi della
+      // famiglia (con le tre voci più insiemi hanno lo stesso basso, ADR 0018).
+      const setIndex = (v) => V.family(v.family).sets.findIndex((s) => V.sameSet(s, v.strings));
       const voicings = V.voicings(q, T.pitchClass(root), undefined, { alt: true })
         .sort((a, b) => FAMILY_ORDER.indexOf(a.family) - FAMILY_ORDER.indexOf(b.family) ||
           (a.alt ? 1 : 0) - (b.alt ? 1 : 0) ||
-          a.strings[0] - b.strings[0] || a.notes[0].midi - b.notes[0].midi);
+          a.strings[0] - b.strings[0] || setIndex(a) - setIndex(b) || a.notes[0].midi - b.notes[0].midi);
       const setName = (v) => v.label.split('').join('–');
       return {
         eyebrow: FAMILIES.find((f) => f.id === q.family).label,

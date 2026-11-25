@@ -51,10 +51,10 @@ test('famiglie per qualità: drop 2 e drop 3 in quattro rivolti per ogni accordo
     }
   }
   assert.deepEqual(V.familiesFor(q('maj')), ['triad', 'spread']);
-  assert.deepEqual(V.familiesFor(q('dim7')), ['drop2', 'drop3', 'drop24']);
-  assert.deepEqual(V.familiesFor(q('9')), ['drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster']);
-  assert.deepEqual(V.familiesFor(q('7')), ['shell', 'drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster']);
-  assert.deepEqual(V.familiesFor(q('m7b5')), ['shell', 'drop2', 'drop3', 'drop24', 'rootless', 'quartal', 'cluster']);
+  assert.deepEqual(V.familiesFor(q('dim7')), ['drop2', 'drop3', 'drop24', 'trio']);
+  assert.deepEqual(V.familiesFor(q('9')), ['drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster', 'trio']);
+  assert.deepEqual(V.familiesFor(q('7')), ['shell', 'drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster', 'trio']);
+  assert.deepEqual(V.familiesFor(q('m7b5')), ['shell', 'drop2', 'drop3', 'drop24', 'rootless', 'quartal', 'cluster', 'trio']);
 });
 
 test('shell di Cmaj7 come nel capitolo 6', () => {
@@ -173,7 +173,7 @@ test('deep link degli accordi: andata e ritorno, valori non validi scartati', ()
   // Gli id usati nei link non cambiano.
   assert.deepEqual(X.EXERCISES.map((e) => e.id), ['inv', 'cycle', 'ii-v-i']);
   assert.deepEqual(X.RHYTHMS.map((r) => r.id), ['whole', 'half', 'quarters', 'two-four', 'charleston', 'arp']);
-  assert.deepEqual(V.FAMILIES.map((f) => f.id), ['shell', 'triad', 'spread', 'drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster']);
+  assert.deepEqual(V.FAMILIES.map((f) => f.id), ['shell', 'triad', 'spread', 'drop2', 'drop3', 'drop24', 'rootless', 'ust', 'quartal', 'cluster', 'trio']);
   // Tensioni alterate (ADR 0015): alt=1 nel link, andata e ritorno.
   assert.equal(L.encodeChordExercise({ ...X.DEFAULTS, alt: true }).alt, 1);
   assert.equal(L.encodeChordExercise({ ...X.DEFAULTS }).alt, null);
@@ -199,7 +199,8 @@ test('comping: il passaggio alla linea del tempo non cambia gli esercizi di Acco
   for (const id of ['maj', 'm7', '7', 'm7b5', 'dim7', 'maj9']) {
     for (const pc of [0, 10]) {
       const root = C.bestRoots(q(id), pc)[0];
-      for (const family of V.familiesFor(q(id))) {
+      // Le famiglie preesistenti (la famiglia `trio` dell'ADR 0018 è nuova e non cambia le altre).
+      for (const family of V.familiesFor(q(id)).filter((f) => f !== 'trio')) {
         for (const exId of ['inv', 'cycle', 'ii-v-i']) {
           for (const r of X.RHYTHMS) {
             for (const bars of [1, 2]) {

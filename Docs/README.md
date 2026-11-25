@@ -31,6 +31,7 @@ Dal 19 novembre 2026, su richiesta dell'utente: `note-di-rilascio.html`, collega
 | [0015](ADR-0015-famiglie-di-voicing.md) | Strumento Accordi: tutte le famiglie di voicing del capitolo, tensioni per qualità | Accettato |
 | [0016](ADR-0016-strumento-ritmi.md) | Strumento Ritmi: figure come gironi di celle, linea sopra una base, click spostato | Proposto |
 | [0017](ADR-0017-piano-elettrico.md) | Suono: piano elettrico selezionabile accanto alla chitarra | Accettato |
+| [0018](ADR-0018-strumento-chord-melody.md) | Strumento Chord melody: melodie generate sulle griglie, nota al canto come vincolo, famiglia «tre voci» | Proposto (rilascio 1a attuato, da approvare) |
 
 Formato: contesto, decisione, alternative scartate, conseguenze.
 Un ADR accettato non si modifica: se la decisione cambia se ne scrive uno nuovo che lo sostituisce.

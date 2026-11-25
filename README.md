@@ -2,8 +2,8 @@
 
 Strumenti web per la pratica alla chitarra, di [Fabrizio's Guitar Space](https://www.youtube.com/@fabsguitarspace),
 collegati al volume [Appunti di Pratica per Chitarra Jazz](https://appunti-pratica-per-chitarra-jazz.readthedocs.io)
-(capitolo «Strumenti per la pratica»). Ci sono gli strumenti **Scale**, **Arpeggi**, **Accordi**, **Progressioni** e **Ritmi**
-([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md), [ADR 0013](Docs/ADR-0013-strumento-progressioni.md), [ADR 0016](Docs/ADR-0016-strumento-ritmi.md)).
+(capitolo «Strumenti per la pratica»). Ci sono gli strumenti **Scale**, **Arpeggi**, **Accordi**, **Progressioni**, **Ritmi** e **Chord melody**
+([piano 0002](Docs/plans/0002-suite-pratica.md), [ADR 0010](Docs/ADR-0010-suite-di-strumenti.md), [ADR 0013](Docs/ADR-0013-strumento-progressioni.md), [ADR 0016](Docs/ADR-0016-strumento-ritmi.md), [ADR 0018](Docs/ADR-0018-strumento-chord-melody.md)).
 
 Solo HTML, CSS e JavaScript: **nessun server**, responsive e mobile-first. Repository
 [`fabsguitarspace/appunti-strumenti`](https://github.com/fabsguitarspace/appunti-strumenti), ex
@@ -19,12 +19,12 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   m7, m(maj7), m7♭5, 7♯5, °7) e di nona (6/9, 9, maj9, m6/9, m9, m(maj9)), con ortografia corretta,
   formula, intervalli e diteggiature in posizione (una per nota di partenza, entro 5 tasti).
   Esercizi propri: lineari, salti, gruppi e rivolti in sequenza, ritmici; partenza da 3ª, 5ª, 7ª.
-- **Accordo casuale** tra le stesse 19 qualità, con le dieci famiglie di voicing del capitolo
+- **Accordo casuale** tra le stesse 19 qualità, con le famiglie di voicing del capitolo
   «Accordi» del volume come diagrammi (ADR 0012, ADR 0015): shell su 6–4–3 e 5–4–3 (basso di
   fondamentale, terza o quinta), triadi strette e late, drop 2 su 4–3–2–1, 5–4–3–2 e 6–5–4–3, drop 3
   su 6–4–3–2 e 5–3–2–1, drop 2 e 4 su 6–5–3–2 e 5–4–2–1, senza fondamentale, strutture superiori
   (con l'opzione «Tensioni alterate» sui dominanti), per quarte (anche la forma «So What») e
-  cluster; etichette delle tensioni (9, 11, 13 e alterazioni). Esercizi: tutti i rivolti su un gruppo di
+  cluster, tre voci (basso, nota guida, melodia; ADR 0018); etichette delle tensioni (9, 11, 13 e alterazioni). Esercizi: tutti i rivolti su un gruppo di
   corde, ciclo delle quarte, II–V–I, con conduzione delle voci; ritmi d'accompagnamento (minime, 2 e
   4, Charleston, arpeggiato…), accordo pennato o simultaneo.
 - **Progressione casuale** tra le 14 griglie del capitolo «Progressioni» del volume (cadenze, giri e
@@ -40,6 +40,12 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
   quando la figura sta nella pulsazione; altezze (nota fissa, accordo, sequenza di scala, note guida),
   swing, note tolte, accenti; base da una delle 14 progressioni con accordi e basso; click del
   metronomo sul 2 e 4, 1 e 3, solo 1, 3 o 4, o sull'«e» del 2 e del 4.
+- **Chord melody** (ADR 0018): su una delle 14 griglie, in 12 tonalità, una melodia generata (nota
+  comune, note guida, toni dell'accordo; sei celle ritmiche o variata) armonizzata sotto la nota al
+  canto con drop 2, drop 3 o tre voci: accordo sui tempi forti e sulle note lunghe, nota sola
+  altrove, voci interne con il movimento minimo; su un accordo, note al canto in salita, stessa nota
+  al canto su cinque qualità, quiz «trova la forma». Melodia su una parte audio propria, più forte;
+  studio a strati (solo melodia, melodia e basso, completo, suona tu).
 - **Ascolto**: suono di chitarra sintetizzato (Karplus-Strong), pulsante ▶ su ogni diteggiatura.
 - **Esercizi** su tre assi combinabili ([catalogo](Docs/esercizi.md)):
   - **Cosa**: lineari, intervalli (dalla 3ª alla 7ª), sequenze (gruppi da 3 a 6, alternati),
@@ -61,7 +67,7 @@ Guitar-Scale-Practice. Nasce come versione web di `../../interval-master` (app d
 
 Online: **https://fabsguitarspace.github.io/appunti-strumenti/** (GitHub Pages dal ramo `main`).
 
-In locale apri `index.html` (scelta dello strumento), `scale.html`, `arpeggi.html`, `accordi.html`, `progressioni.html` o `ritmi.html` nel browser: funziona anche con
+In locale apri `index.html` (scelta dello strumento), `scale.html`, `arpeggi.html`, `accordi.html`, `progressioni.html`, `ritmi.html` o `chord-melody.html` nel browser: funziona anche con
 doppio clic, da `file://`. Per clonare: `git clone https://github.com/fabsguitarspace/appunti-strumenti.git`.
 
 | Tasto | Azione |
@@ -92,12 +98,13 @@ Vedi [Docs/architecture.md](Docs/architecture.md) per il diagramma dei moduli e
 [Docs/](Docs/README.md) per ADR, catalogo degli esercizi e piano.
 
 ```
-index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  progressioni.html  ritmi.html  css/style.css
+index.html (scelta dello strumento)  scale.html  arpeggi.html  accordi.html  progressioni.html  ritmi.html  chord-melody.html  css/style.css
 js/theme.js  js/theory.js  js/chords.js  js/guitar.js  js/events.js  js/link.js  js/fretboard.js
 js/progression.js  js/progressions.js  js/rhythms.js  js/rhythmpractice.js  js/ritmi.js
 js/voicings.js  js/voiceleading.js  js/chordchart.js  js/chordpractice.js  js/accordi.js
+js/melodies.js  js/cmpractice.js  js/chordmelody.js
 js/transport.js  js/practice.js  js/app.js (guscio comune)  js/scale.js  js/arpeggi.js
-js/exercises/  pool · melodic · rhythm · fingering · presets · comping · progcomp · bass · rhythmline
+js/exercises/  pool · melodic · rhythm · fingering · presets · comping · progcomp · bass · rhythmline · harmonize
 js/audio/      ks · scheduler · engine
 js/tab/        layout · render
 tests/         *.test.js (node:test, nessuna dipendenza)

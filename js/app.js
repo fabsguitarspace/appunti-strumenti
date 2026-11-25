@@ -13,6 +13,9 @@
  *   legacyFamilies facoltativo: famiglie esistenti prima che si salvasse l'elenco delle famiglie
  *                conosciute; le altre, assenti da un salvataggio, si abilitano (ADR 0014)
  *   slugAliases  facoltativo: { vecchio identificatore: nuovo } per i link creati prima di un cambio di nome
+ *   linkSlug(params)      facoltativo: identificatore dell'elemento letto dal link, quando gli elementi
+ *                usano parametri diversi (Chord melody: `prog` o `chord`, ADR 0018); al posto di linkKey
+ *   linkParams(item, slug) facoltativo: parametri del link per l'elemento, al posto di { linkKey: slug }
  *   bestRoots(item, pc)   nomi ammessi della tonica
  *   title(item, root)     titolo mostrato
  *   poolLabel             es. 'Scale nel pool'
@@ -160,7 +163,7 @@
     const { params } = Link.parse(location.hash);
     // Il solo tema lo gestisce theme.js: niente da applicare qui.
     if (!Object.keys(params).some((k) => k !== 'theme')) return false;
-    const key = params[def.linkKey];
+    const key = def.linkSlug ? def.linkSlug(params) : params[def.linkKey];
     const item = slugs.indexOf((def.slugAliases && def.slugAliases[key]) || key);
     const root = Link.parseNote(params[ROOT_PARAM]);
     let ok = false;
@@ -340,7 +343,7 @@
       title: v.plainTitle,
       hint: v.hint,
       patternScope: v.patternScope,
-      link: { [def.linkKey]: slugs[p[K]], [ROOT_PARAM]: Link.noteParam(p.root) },
+      link: { ...(def.linkParams ? def.linkParams(item, slugs[p[K]]) : { [def.linkKey]: slugs[p[K]] }), [ROOT_PARAM]: Link.noteParam(p.root) },
     });
   }
 

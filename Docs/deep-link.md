@@ -87,7 +87,7 @@ arpeggi.html#v=1&chord=7&root=Bb&preset=grp-4&start=2&ext=1&scope=pattern&patter
 | `chord`, `root` | come negli Arpeggi | accordo e fondamentale; vanno insieme |
 | `ex` | `inv`, `cycle`, `ii-v-i` | rivolti sullo stesso gruppo di corde, ciclo delle quarte, II–V–I verso l'accordo |
 | `dir` | `up`, `down`, `updown` | solo con `ex=inv` |
-| `fam` | `shell`, `triad`, `spread`, `drop2`, `drop3`, `drop24`, `rootless`, `ust`, `quartal`, `cluster` | famiglia di voicing (ADR 0015: `spread` = triadi late, `drop24` = drop 2 e 4, `rootless` = senza fondamentale, `ust` = strutture superiori, `quartal` = per quarte); se l'accordo non la prevede si usa la prima disponibile; nel ciclo e nel II–V–I gli accordi senza voicing di colore ripiegano su senza fondamentale e drop 2 |
+| `fam` | `shell`, `triad`, `spread`, `drop2`, `drop3`, `drop24`, `rootless`, `ust`, `quartal`, `cluster`, `trio` | famiglia di voicing (ADR 0015: `spread` = triadi late, `drop24` = drop 2 e 4, `rootless` = senza fondamentale, `ust` = strutture superiori, `quartal` = per quarte); se l'accordo non la prevede si usa la prima disponibile; nel ciclo e nel II–V–I gli accordi senza voicing di colore ripiegano su senza fondamentale e drop 2 |
 | `set` | `all` oppure corde da chitarrista, es. `4321`, `5432`, `6543`, `6532`, `5421`, `54321`, `643`, `532`, `421`, `321` | insieme di corde della famiglia (da tre a cinque corde) |
 | `alt` | `1` | tensioni alterate nelle strutture superiori dei dominanti (omesso = solo naturali) |
 | `from`, `to` | `1`–`20` | zona di tasti |
@@ -113,7 +113,7 @@ accordi.html#v=1&chord=maj7&root=C&ex=ii-v-i&fam=shell&set=all&from=1&to=10&rhyt
 | `rhythm` | quelli di Accordi più `offbeat`, `bossa`, `green` | ritmo d'attacco; `green` solo con `fam=shell` o `triad` |
 | `attack` | `strum`, `block` | pennata o simultaneo (omesso = pennata) |
 | `bass` | `off`, `roots`, `walk` | basso spento, fondamentali, walking di base |
-| `fam` | `shell`, `triad`, `spread`, `drop2`, `drop3`, `drop24`, `rootless`, `ust`, `quartal`, `cluster` | famiglia di voicing; con `shell` le eccezioni del capitolo usano quattro voci; con `triad` e `spread` si suona la triade dell'accordo; `alt=1` come in Accordi |
+| `fam` | `shell`, `triad`, `spread`, `drop2`, `drop3`, `drop24`, `rootless`, `ust`, `quartal`, `cluster`, `trio` | famiglia di voicing; con `shell` le eccezioni del capitolo usano quattro voci; con `triad` e `spread` si suona la triade dell'accordo; `alt=1` come in Accordi |
 | `set` | `all` oppure corde da chitarrista, es. `543`, `4321` | insieme di corde della famiglia |
 | `from`, `to` | `1`–`20` | zona di tasti |
 | `study` | `grid`, `guide`, `arp`, `play` | griglia, note guida, arpeggio dell'accordo, «suona tu» |
@@ -166,6 +166,40 @@ sul 4, 80 BPM:
 
 ```
 ritmi.html#v=1&rhythm=crome-4&key=F&start=8&notes=chord&base=ii-v-i&bass=walk&metro=two-four&bpm=80
+```
+
+## Strumento Chord melody (`chord-melody.html`)
+
+Il materiale è una griglia **oppure** un accordo: `prog` e `chord` si escludono ([ADR 0018](ADR-0018-strumento-chord-melody.md)).
+
+| Chiave | Valori | Note |
+|---|---|---|
+| `prog` | id delle griglie di Progressioni (stesso elenco) | griglia; va con `key` |
+| `chord` | qualità a 4 o 5 note di Accordi: `6`, `7`, `maj7`, `m6`, `m7`, `mmaj7`, `m7b5`, `7s5`, `dim7`, `69`, `9`, `maj9`, `m69`, `m9`, `mmaj9` | accordo; va con `key` |
+| `key` | nota, es. `C`, `Bb`, `F#` | tonalità o fondamentale |
+| `ex` | con `prog`: `line`, `trio`; con `chord`: `tops`, `same-top`, `quiz-top` | melodia sulla griglia, tre voci sulla griglia; note al canto in salita, stessa nota al canto su cinque qualità, quiz |
+| `line` | `common`, `guide`, `tones` | melodia generata: nota comune, note guida, toni dell'accordo (solo con `prog`) |
+| `cell` | `whole`, `halves`, `dotted`, `half-quarters`, `charleston`, `quarters`, `vary` | ritmo della melodia, una cella per battuta; `vary` sceglie con `seed` (solo con `prog`) |
+| `seed` | `1`–`999999` | con `cell=vary` e con `ex=quiz-top`: lo stesso seme dà la stessa melodia o la stessa domanda |
+| `fam` | `drop2`, `drop3`, `trio` | forme; con `ex=trio` sempre `trio` |
+| `string` | `1`, `2`, `12` | corda della melodia: 1ª, 2ª o entrambe |
+| `from`, `to` | `1`–`20` | zona di tasti |
+| `attack` | `strum`, `block`, `melody` | pennata, simultaneo, prima la melodia (le voci sotto un ottavo dopo) |
+| `study` | `full`, `melody`, `bass`, `play` | completo, solo melodia, melodia e basso, «suona tu» (resta la voce più grave) |
+| `bpm` | `30`–`300` | tempo |
+
+Codice: `Link.encodeChordMelodyExercise`/`decodeChordMelodyExercise`; id fissati da `tests/chordmelody.test.js`.
+
+Esempio: tre voci sul II–V–I in Fa, note guida sulla 2ª corda, prima la melodia:
+
+```
+chord-melody.html#v=1&prog=ii-v-i&key=F&ex=trio&line=guide&cell=whole&fam=trio&string=2&attack=melody&study=full&bpm=60
+```
+
+Esempio: le note al canto di Cmaj7 in drop 2 sulla 1ª corda:
+
+```
+chord-melody.html#v=1&chord=maj7&key=C&ex=tops&fam=drop2&string=1&bpm=60
 ```
 
 ### Identificatori delle scale

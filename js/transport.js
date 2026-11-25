@@ -58,7 +58,7 @@
 
   /**
    * @param deps {
-   *   options(): { bpm, loop, countIn, metronome, metroMode, volNotes, volClick, volBass?, volStudy?, trainer },
+   *   options(): { bpm, loop, countIn, metronome, metroMode, volNotes, volClick, volBass?, volStudy?, volMelody?, trainer },
    *   onBpm(bpm)          tempo cambiato (pulsanti, tap, trainer): da salvare,
    *   onPlayClick()       pulsante Play/Stop,
    *   onHighlight(ev)     evento da evidenziare, null alla fine,
@@ -209,7 +209,7 @@
       const o = deps.options();
       const full = mode === 'exercise';
       // Le parti 'bass' e 'study' (Progressioni, ADR 0013) hanno volumi propri, se lo strumento li prevede.
-      AudioEngine.setVolumes({ notes: o.volNotes, click: o.volClick, bass: o.volBass, study: o.volStudy });
+      AudioEngine.setVolumes({ notes: o.volNotes, click: o.volClick, bass: o.volBass, study: o.volStudy, melody: o.volMelody });
       AudioEngine.prepare(Events.midisOf(ex.events));
       const bpm0 = o.bpm;
       const tr = o.trainer;

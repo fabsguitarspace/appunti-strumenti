@@ -4,7 +4,8 @@
  * riverbero, click del metronomo.
  * Si attiva solo dentro un gesto dell'utente (unlock), come richiedono i browser mobili.
  * Parti (ADR 0013, punto 7): ogni nota appartiene a una parte ('comp', predefinita, 'bass',
- * 'study') con bus e volume propri; lo smorzamento per corda vale dentro la stessa parte.
+ * 'study', 'melody') con bus e volume propri; lo smorzamento per corda vale dentro la stessa parte.
+ * 'melody' (chord melody, ADR 0018) condivide lo smorzamento con 'comp': una corda, una nota.
  * Sopra i bus c'è il volume generale (setMaster), regolato dalla barra di trasporto.
  */
 (function (root) {
@@ -21,15 +22,18 @@
   let noteBus = null;  // parte 'comp': le note degli strumenti (volume 'notes')
   let bassBus = null;
   let studyBus = null;
+  let melodyBus = null;
   let clickBus = null;
   const cache = new Map(); // 'midi:strato:variante' → {buffer, rate}
   const rr = new Map();    // 'midi:strato' → ultima variante usata (alternanza)
   const active = new Set();
   const voices = new Map(); // parte:corda → voce in corso (smorzamento per corda)
-  let volumes = { notes: 0.8, bass: 0.8, study: 0.5, click: 0.6 };
+  let volumes = { notes: 0.8, bass: 0.8, study: 0.5, melody: 1, click: 0.6 };
   let level = 1; // volume generale (barra di trasporto), moltiplica il master
   const MASTER = 0.9;
-  const busOf = (part) => (part === 'bass' ? bassBus : part === 'study' ? studyBus : noteBus);
+  const busOf = (part) => (part === 'bass' ? bassBus : part === 'study' ? studyBus : part === 'melody' ? melodyBus : noteBus);
+  /** Gruppo di smorzamento: melodia e voci sotto le suona la stessa mano (ADR 0018, punto 9). */
+  const dampOf = (part) => (!part || part === 'melody' ? 'comp' : part);
 
   function supported() {
     return !!(root.AudioContext || root.webkitAudioContext);
@@ -62,6 +66,8 @@
       bassBus.connect(notesIn);
       studyBus = ctx.createGain();
       studyBus.connect(notesIn);
+      melodyBus = ctx.createGain();
+      melodyBus.connect(notesIn);
       clickBus = ctx.createGain();
       clickBus.connect(master);
       setVolumes(volumes);
@@ -188,7 +194,7 @@
   /**
    * @param when     tempo AudioContext di inizio
    * @param opts     { velocity 0..1, string (per lo smorzamento), duration in secondi,
-   *                  part: 'comp' | 'bass' | 'study' (predefinita 'comp') }
+   *                  part: 'comp' | 'bass' | 'study' | 'melody' (predefinita 'comp') }
    */
   function playNote(midi, when, opts = {}) {
     if (!ctx) return;
@@ -211,7 +217,7 @@
     src.onended = () => { active.delete(voice); src.disconnect(); g.disconnect(); };
     // Smorzamento per corda: la nuova nota chiude la precedente sulla stessa corda.
     if (opts.string != null) {
-      const key = (opts.part || 'comp') + ':' + opts.string;
+      const key = dampOf(opts.part) + ':' + opts.string;
       const prev = voices.get(key);
       if (prev && prev.when < when) {
         try {
@@ -256,6 +262,7 @@
     if (noteBus) noteBus.gain.value = volumes.notes;
     if (bassBus) bassBus.gain.value = volumes.bass;
     if (studyBus) studyBus.gain.value = volumes.study;
+    if (melodyBus) melodyBus.gain.value = volumes.melody;
     if (clickBus) clickBus.gain.value = volumes.click;
   }
 

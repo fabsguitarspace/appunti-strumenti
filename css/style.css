@@ -662,6 +662,15 @@ a.tool-card:hover { background: var(--surface-2); }
 .chord-seq li { padding: 6px 4px 4px; border: 1px solid var(--line); border-radius: 10px; text-align: center; }
 .chord-seq .chord-sym { display: block; font-weight: 650; font-size: .95rem; }
 .chord-seq li.is-playing { border-color: var(--playing); box-shadow: 0 0 0 2px var(--playing) inset; }
+/* Chord melody (ADR 0018): nota al canto cerchiata, note suonate da sole in corsivo. */
+.cm-seq li { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cm-seq .cm-top { font-size: .78rem; color: var(--muted); }
+.cm-seq .quick-btn { margin-top: 2px; }
+.chordchart .dot.is-top circle { stroke: var(--text); stroke-width: 2.5; }
+.cm-melody .cm-note { font-family: var(--mono); }
+.cm-melody .cm-note.is-single { font-style: italic; opacity: .8; }
+.cm-melody .cm-note.is-playing { text-decoration: underline; font-weight: 700; }
+.cm-question { font-weight: 600; margin: 0 0 8px; }
 @media (min-width: 640px) {
   .patterns.patterns-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

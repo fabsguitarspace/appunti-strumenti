@@ -35,6 +35,12 @@
     { id: 'ust', label: 'Strutture superiori', sets: [[2, 3, 4, 5], [1, 2, 3, 4]] },
     { id: 'quartal', label: 'Per quarte', sets: [[3, 4, 5], [2, 3, 4], [2, 3, 4, 5], [1, 2, 3, 4], [1, 2, 3, 4, 5]] },
     { id: 'cluster', label: 'Cluster', sets: [[2, 3, 4, 5], [1, 2, 3, 4]] },
+    // ADR 0018: tre voci del chord melody (basso di fondamentale, nota guida, canto), corde non
+    // adiacenti: basso sulla 6ª o 5ª, guida su una corda intermedia, canto sulla 2ª o 1ª.
+    { id: 'trio', label: 'Tre voci', sets: [
+      [0, 1, 4], [0, 1, 5], [0, 2, 4], [0, 2, 5], [0, 3, 4], [0, 3, 5],
+      [1, 2, 4], [1, 2, 5], [1, 3, 4], [1, 3, 5],
+    ] },
   ];
 
   /**
@@ -234,6 +240,21 @@
       }
       return out;
     }
+    if (fam === 'trio') {
+      // ADR 0018: fondamentale al basso, nota guida (3ª o 7ª; 6ª senza settima; nel diminuito ♭3
+      // o °7) nel mezzo, al canto un'altra nota dell'accordo o una tensione naturale. Fondamentale
+      // raddoppiata al canto e tensioni (indici di toneList oltre q.tones) solo con opts.melody.
+      if (n < 4) return [];
+      const list = toneList(q);
+      const hasSeventh = q.tones.some((t) => t.number === 7);
+      const guides = q.tones.map((t, i) => i).filter((i) => q.tones[i].number === 3 ||
+        (hasSeventh ? q.tones[i].number === 7 : q.tones[i].number === 6));
+      const natural = new Set(q.tones.concat(q.tensions || []).map(pcOf));
+      const tops = list.map((t, i) => i).filter((i) => natural.has(pcOf(list[i])));
+      const out = [];
+      for (const g of guides) for (const t of tops) if (pcOf(list[t]) !== pcOf(list[g])) out.push([0, g, t]);
+      return out;
+    }
     if (fam === 'shell') {
       // Tre voci: fondamentale, terza e settima (o sesta), quinta omessa; il diminuito no
       // (capitolo 6: «evita di applicare automaticamente la regola togli la quinta»).
@@ -307,6 +328,8 @@
       const clusters = new Map();
       for (const job of jobs) {
         const { set, order } = job;
+        // Tre voci: fondamentale raddoppiata, tensioni e colori al canto solo per il chord melody.
+        if (famId === 'trio' && !opts.melody && (order[2] === 0 || order[2] >= q.tones.length)) continue;
         // Nessuna tensione (nona) al basso.
         if (tones[order[0]].number > 7) continue;
         const pcs = order.map((t) => mod(rootPc + semis[t], 12));
@@ -330,7 +353,22 @@
         for (const { job, p } of best.slice(0, MAX_CLUSTERS)) out.push(build(famId, set, job.order, p, job));
       }
     }
-    return out;
+    return opts.top == null ? out : withTop(out, opts.top, rootPc, semis);
+  }
+
+  /**
+   * Nota al canto come vincolo (ADR 0018, punto 3): `top` classe di altezza assoluta (0–11) o
+   * altezza MIDI (≥ 12). Con l'altezza si cercano anche le ottave della stessa forma sul manico.
+   */
+  function withTop(list, top, rootPc, semis) {
+    if (top < 12) return list.filter((v) => mod(rootPc + semis[v.top], 12) === mod(top, 12));
+    return list.flatMap(octaves).filter((v) => topOf(v).midi === top);
+  }
+
+  /** Nota più acuta di un voicing: { tone, midi, string, fret }. */
+  function topOf(v) {
+    const n = v.notes[v.notes.length - 1];
+    return { tone: n.tone, midi: n.midi, string: n.string, fret: n.fret };
   }
 
   function build(famId, set, order, p, job = {}) {
@@ -368,7 +406,7 @@
     return [-12, 0, 12].map((d) => (d ? shift(v, d) : v)).filter(Boolean);
   }
 
-  const Voicings = { FAMILIES, ROOTLESS, toneList, family, setLabel, setFrom, sameSet, orders, place, voicings, familiesFor, shift, octaves, SPAN };
+  const Voicings = { FAMILIES, ROOTLESS, toneList, family, setLabel, setFrom, sameSet, orders, place, voicings, familiesFor, shift, octaves, topOf, SPAN };
 
   if (isNode) module.exports = Voicings;
   else root.Voicings = Voicings;

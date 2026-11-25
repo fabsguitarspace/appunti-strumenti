@@ -10,12 +10,13 @@ puri si caricano anche da Node per i test. È una suite di strumenti con nucleo 
 
 | Pagina | Contenuto |
 |---|---|
-| `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi, Progressioni e Ritmi), ritorno al volume |
+| `index.html` | scelta dello strumento (Scale, Arpeggi, Accordi, Progressioni, Ritmi e Chord melody), ritorno al volume |
 | `scale.html` | strumento Scale: scala casuale, diteggiature 3NPS o in posizione (pentatoniche e blues, ADR 0014), esercizi, trasporto |
 | `arpeggi.html` | strumento Arpeggi: arpeggio casuale (19 qualità), diteggiature in posizione, rivolti, esercizi, trasporto |
-| `accordi.html` | strumento Accordi: accordo casuale, voicing shell/triadi strette e late/drop/senza fondamentale/strutture superiori/quarte/cluster in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
+| `accordi.html` | strumento Accordi: accordo casuale, voicing shell/triadi strette e late/drop/senza fondamentale/strutture superiori/quarte/cluster/tre voci in diagrammi, rivolti, ciclo delle quarte, II–V–I, trasporto |
 | `progressioni.html` | strumento Progressioni: progressione casuale del capitolo 7, griglia, accompagnamento, basso, note guida, quiz sui gradi romani, trasporto |
 | `ritmi.html` | strumento Ritmi (ADR 0016): figura ritmica casuale della pagina «Ritmo melodico», griglia ritmica, linea sopra una base, click spostato, quiz di lettura, trasporto |
+| `chord-melody.html` | strumento Chord melody (ADR 0018): griglia o accordo casuale, melodia generata e armonizzata sotto la nota al canto (drop 2, drop 3, tre voci), note al canto e quiz sull'accordo, forme, griglia con la melodia, tablatura, trasporto |
 
 Ogni pagina carica `js/theme.js` nel `<head>` e `css/style.css` (tema «Appunti»).
 
@@ -47,6 +48,8 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
    Accordi: chordpractice.js (ChordPractice, stessa interfaccia di Practice) + chordchart.js (diagrammi)
    Ritmi: rhythms.js (Rhythms: figure) ─► exercises/rhythmline.js (RhythmLine: linea + base, via ProgComp)
           └─► rhythmpractice.js (RhythmPractice, stessa interfaccia) ◄── ritmi.js (definizione)
+   Chord melody: melodies.js (Melodies: linee sulla griglia) ─► exercises/harmonize.js (Harmonize: nota al canto
+          come vincolo, via Voicings e VoiceLeading) ─► cmpractice.js (CMPractice) ◄── chordmelody.js (definizione)
 ```
 
 | Modulo | Responsabilità | Node |
@@ -57,7 +60,7 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `chords.js` | 19 qualità come insiemi di gradi (più `extra()`: 7♭9 per Progressioni), ortografia, sigle, trasposizione | sì |
 | `progression.js` | griglie di accordi (ADR 0013): sigle (`parseSymbol`), ritmo armonico, trasposizione per lettere e semitoni, nome della tonalità, gradi romani; `realize` → battute e linea del tempo | sì |
 | `progressions.js` | catalogo delle 14 griglie del capitolo 7 del volume (id pubblici, sezioni, forma, centri) | sì |
-| `voicings.js` | voicing shell, triadi strette e late, drop 2, drop 3, drop 2 e 4, senza fondamentale, strutture superiori, per quarte e cluster generati (ADR 0012, ADR 0015); `toneList(q)` aggiunge alle note della qualità i colori dei senza fondamentale e le tensioni di `chords.js` (es. 13, ♯11, ♭9), con gli stessi indici `tone` usati per le etichette dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
+| `voicings.js` | voicing shell, triadi strette e late, drop 2, drop 3, drop 2 e 4, senza fondamentale, strutture superiori, per quarte, cluster e tre voci generati (ADR 0012, ADR 0015, ADR 0018); filtro sulla nota al canto (`top`) e `topOf`; `toneList(q)` aggiunge alle note della qualità i colori dei senza fondamentale e le tensioni di `chords.js` (es. 13, ♯11, ♭9), con gli stessi indici `tone` usati per le etichette dalle formule (una nota per corda, cinque tasti, niente vuoti né tensioni al basso) | sì |
 | `voiceleading.js` | scelta dei voicing lungo una sequenza con movimento minimo (Viterbi) | sì |
 | `exercises/comping.js` | esercizi sugli accordi (rivolti, ciclo delle quarte, II–V–I) e ritmi d'accompagnamento sulla linea del tempo (`comp`, ADR 0013): ogni colpo suona l'accordo in vigore → eventi polifonici | sì |
 | `exercises/progcomp.js` | accompagnamento delle progressioni (ADR 0013): voicing con la conduzione delle voci sull'intera forma e sul ritorno del loop, eccezioni del capitolo 7 (quattro voci, sigla con barra), ritmi `PROG_RHYTHMS`, note guida → eventi `comp`, `bass`, `study` | sì |
@@ -71,14 +74,14 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `audio/ks.js` | buffer Karplus-Strong esteso: pizzico, perdita per altezza, allpass frazionario, due polarizzazioni | sì |
 | `audio/ep.js` | buffer del piano elettrico morbido in FM, stessa sintesi del soundfont dei volumi (ADR 0017) | sì |
 | `audio/scheduler.js` | lookahead, loop, count-in, metronomo (anche sul 2 e 4, solo 4, «e» del 2 e del 4: `METRO`, ADR 0016), trainer, coda visiva | sì (clock finto) |
-| `audio/engine.js` | AudioContext, timbro (`setTimbre`: chitarra o piano elettrico, ADR 0017), cache delle voci (strati di velocity, varianti alternate), cassa armonica o equalizzazione del piano e riverbero, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), volume generale sul master (`setMaster`), smorzamento per parte e corda, click | no |
+| `audio/engine.js` | AudioContext, timbro (`setTimbre`: chitarra o piano elettrico, ADR 0017), cache delle voci (strati di velocity, varianti alternate), cassa armonica o equalizzazione del piano e riverbero, bus e volumi per parte (`comp`, `bass`, `study`, `melody`; ADR 0013, ADR 0018; `melody` smorza insieme a `comp`), volume generale sul master (`setMaster`), smorzamento per parte e corda, click | no |
 | `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; note impilate; tab ASCII | sì |
 | `tab/render.js` | SVG della tablatura | no |
 | `fretboard.js` | SVG delle diteggiature e della tastiera intera (`fretFrom/To`, `cellWidth`, `path`) | no |
 | `link.js` | deep link: frammento ↔ parametri, note, identificatori delle scale, esercizio ([deep-link.md](deep-link.md)) | sì |
 | `transport.js` | trasporto comune: barra Play/BPM/Tap/Volume, avvio e arresto, trainer, volumi, volume generale, «muto» e suono (comuni agli strumenti, chiave `appunti-strumenti.volume`), wake lock, ciclo di evidenziazione | no |
 | `practice.js` | pannello Cosa/Come/Dove/Opzioni comune a Scale e Arpeggi (`configure`), viste, ascolto rapido, «Copia link», stampa | no |
-| `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature (facoltative), cronologia, drawer, scorciatoie, lettura del link (parametro della tonica configurabile), contenuto del quiz | no |
+| `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature (facoltative), cronologia, drawer, scorciatoie, lettura del link (parametro della tonica configurabile; `linkSlug`/`linkParams` per elementi con parametri diversi, ADR 0018), contenuto del quiz | no |
 | `scale.js`, `arpeggi.js`, `accordi.js` | definizioni degli strumenti: catalogo, ortografia, dettagli, diteggiature o voicing, chiavi di salvataggio | no |
 | `chordpractice.js` | pannello Esercizi degli accordi: Cosa/Come/Dove/Opzioni, viste accordi/tastiera/tablatura, ascolto dei voicing, «Copia link» | no |
 | `panel-ui.js` | aiuti comuni ai pannelli (DOM, controlli, assi, asse Opzioni con loop esterno facoltativo, copia); usato da `chordpractice.js` e `progpractice.js` | no |
@@ -89,6 +92,10 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `exercises/rhythmline.js` | esercizio dello strumento Ritmi: altezze sugli attacchi (nota fissa, accordo, sequenza di scala, note guida), swing, base da `ProgComp` (accordi su `study`, basso), eventi per la tablatura | sì |
 | `rhythmpractice.js` | pannello Esercizi dei ritmi: Cosa/Come/Base/Opzioni, griglia ritmica (anche per il quiz), tablatura, «Copia link» | no |
 | `ritmi.js` | definizione dello strumento Ritmi (link con `key`, tonalità con i bemolli, quiz con la griglia senza conteggio) | no |
+| `melodies.js` | melodie generate sulla linea del tempo di `Progression.realize` (ADR 0018): linee nota comune, note guida, toni dell'accordo (Viterbi), celle ritmiche di una battuta o variate con seme, registro per corda della melodia, filtro `accept` sulle altezze | sì |
+| `exercises/harmonize.js` | armonizzazione del chord melody: accordo sui tempi forti e sulle note lunghe, nota sola altrove; voicing con la nota al canto (`Voicings` con `top`, `melody`) collegati da `VoiceLeading`; esercizi sull'accordo (note al canto in salita, stessa nota al canto, quiz) → eventi `melody` e `comp` | sì |
+| `cmpractice.js` | pannello Esercizi del chord melody: Cosa/Come/Dove/Studio/Opzioni, viste forme/griglia con la melodia/tablatura/tastiera, quiz, «Copia link» | no |
+| `chordmelody.js` | definizione dello strumento Chord melody: materiali griglia (catalogo di Progressioni) o accordo (`prog` o `chord` nel link, con `key`) | no |
 
 ## Principi
 
@@ -125,6 +132,7 @@ salvate; gli strumenti nuovi useranno `gsp:<strumento>:v1`.
 | `gsp:progressioni:v1`, `gsp:progressioni:practice:v1` | `localStorage` | Progressioni: estrazione e impostazioni dell'esercizio |
 | `gsp:ritmi:v1` | `localStorage` | Ritmi: famiglie, tonalità, opzioni, figura corrente, cronologia |
 | `gsp:ritmi:practice:v1` | `localStorage` | Ritmi: impostazioni dell'esercizio (partenza, seme, altezze, base, click, viste) |
+| `gsp:chordmelody:v1`, `gsp:chordmelody:practice:v1` | `localStorage` | Chord melody: estrazione e impostazioni dell'esercizio |
 | `gsp:theme` | `sessionStorage` | tema scelto dal link (`dark`/`light`/`auto`), valido per la scheda |
 
 ## Ordine di caricamento (`scale.html`)
@@ -168,5 +176,9 @@ al posto di `js/scale.js`.
 
 `ritmi.html` carica gli stessi moduli di Progressioni più `rhythms` ed `exercises/rhythmline` dopo
 `exercises/progcomp`, e `rhythmpractice` e `ritmi` al posto di `progpractice` e `progressioni`.
+
+`chord-melody.html` carica `theory`, `guitar`, `chords`, `progression`, `progressions`, `voicings`,
+`voiceleading`, `events`, `melodies`, `exercises/harmonize`, `tab/*`, `audio/*`, `fretboard`,
+`chordchart`, `link`, `transport`, `panel-ui`, `cmpractice`, `app` e `chordmelody`.
 
 `index.html` carica solo `theme.js` e il CSS.

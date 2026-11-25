@@ -226,6 +226,40 @@ accordi × voicing della famiglia scelta × ritmo d'accompagnamento.
 
 | Dove | Valori |
 |---|---|
-| Famiglia (`fam`) | shell (6–4–3, 5–4–3), drop 2 (6–5–4–3, 5–4–3–2, 4–3–2–1), drop 3 (6–4–3–2, 5–3–2–1), drop 2 e 4 (6–5–3–2, 5–4–2–1), senza fondamentale (5–4–3–2, 4–3–2–1), triadi late (6–4–3, 5–3–2, 4–2–1), strutture superiori (5–4–3–2, 4–3–2–1; opzione tensioni alterate), per quarte (4–3–2, 3–2–1, 5–4–3–2, 4–3–2–1, 5–4–3–2–1), cluster (5–4–3–2, 4–3–2–1, al più quattro per gruppo), triadi strette (6–5–4 … 3–2–1) |
+| Famiglia (`fam`) | shell (6–4–3, 5–4–3), drop 2 (6–5–4–3, 5–4–3–2, 4–3–2–1), drop 3 (6–4–3–2, 5–3–2–1), drop 2 e 4 (6–5–3–2, 5–4–2–1), senza fondamentale (5–4–3–2, 4–3–2–1), triadi late (6–4–3, 5–3–2, 4–2–1), strutture superiori (5–4–3–2, 4–3–2–1; opzione tensioni alterate), per quarte (4–3–2, 3–2–1, 5–4–3–2, 4–3–2–1, 5–4–3–2–1), cluster (5–4–3–2, 4–3–2–1, al più quattro per gruppo), triadi strette (6–5–4 … 3–2–1), tre voci (basso 6ª o 5ª, guida nel mezzo, canto 2ª o 1ª: 6–5–2 … 5–3–1; ADR 0018) |
 | Corde (`set`) | tutte quelle della famiglia, oppure un insieme |
 | Zona (`from`, `to`) | tasti 1–20: limite per i rivolti, zona preferita per la conduzione delle voci |
+
+## Strumento Chord melody
+
+Esercizi in `js/exercises/harmonize.js`, melodie in `js/melodies.js`
+([ADR 0018](ADR-0018-strumento-chord-melody.md)): la nota della melodia è un vincolo, le voci sotto
+si scelgono con la conduzione delle voci. Accordo sulle note che cadono sui tempi forti (1 e 3) o
+durano almeno due pulsazioni, nota sola altrove.
+
+| Cosa (`ex`) | Materiale | Sequenza |
+|---|---|---|
+| `line` Melodia sulla griglia | griglia | la linea scelta (`line`) con il ritmo scelto (`cell`), armonizzata con la famiglia scelta |
+| `trio` Tre voci sulla griglia | griglia | come `line`, con la sola famiglia a tre voci |
+| `tops` Note al canto in salita | accordo | una forma per nota dell'accordo al canto, dalla più grave nella zona (come `cm-drop2-maj7`) |
+| `same-top` Stessa nota al canto | accordo | la fondamentale al canto su maj7, 6, 7, m7, m7♭5 |
+| `quiz-top` Quiz | accordo | qualità e nota al canto (scelta con il seme); poi tutte le forme con quella nota in cima |
+
+| Melodia (`line`) | Regola |
+|---|---|
+| `common` Nota comune | la stessa nota finché l'accordo la contiene (tono o tensione naturale), poi la più vicina |
+| `guide` Note guida | 3ª e 7ª (6ª senza settima) con il movimento minimo |
+| `tones` Toni dell'accordo | una nota dell'accordo per attacco, per grado o piccoli salti; ribattere costa |
+
+Ritmo (`cell`): semibreve, due minime, minima puntata e semiminima, minima e due semiminime,
+charleston, quattro semiminime, oppure variata (una cella per battuta, con il seme). Un attacco in
+più a ogni cambio d'accordo. Registro: corda 1 (Fa4–La5), corda 2 (Do4–Mi5) o entrambe; il
+generatore evita le altezze che sul tempo forte non avrebbero una forma.
+
+| Come, Dove, Studio | Valori |
+|---|---|
+| Attacco (`attack`) | pennata · simultaneo · prima la melodia (voci sotto un ottavo dopo) |
+| Forme (`fam`) | drop 2 (4–3–2–1 con melodia sulla 1ª, 5–4–3–2 sulla 2ª), drop 3 (5–3–2–1 sulla 1ª, 6–4–3–2 sulla 2ª), tre voci; le triadi usano triadi strette e late |
+| Corda della melodia (`string`) | 1ª · 2ª · entrambe |
+| Zona (`from`, `to`) | tasti 1–20, zona preferita per la conduzione delle voci |
+| Studio (`study`) | completo · solo melodia · melodia e basso (voce più grave) · suona tu (resta la voce più grave) |
