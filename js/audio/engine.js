@@ -1,5 +1,6 @@
 /**
- * Motore audio (ADR 0003): AudioContext, voci Karplus-Strong in cache, cassa armonica e
+ * Motore audio (ADR 0003, ADR 0017): AudioContext, voci in cache (chitarra Karplus-Strong o
+ * piano elettrico FM, a scelta con setTimbre), cassa armonica o equalizzazione del piano,
  * riverbero, click del metronomo.
  * Si attiva solo dentro un gesto dell'utente (unlock), come richiedono i browser mobili.
  * Parti (ADR 0013, punto 7): ogni nota appartiene a una parte ('comp', predefinita, 'bass',
@@ -10,7 +11,12 @@
   'use strict';
 
   const KS = root.KS;
+  const EP = root.EP;
+  const TIMBRES = ['guitar', 'epiano'];
+  let timbre = 'guitar';
   let ctx = null;
+  let notesIn = null;  // ingresso comune delle parti, collegato alla catena del timbro scelto
+  const chains = {};   // timbro → nodo d'ingresso della sua catena
   let master = null;
   let noteBus = null;  // parte 'comp': le note degli strumenti (volume 'notes')
   let bassBus = null;
@@ -43,13 +49,19 @@
       master = ctx.createGain();
       master.gain.value = MASTER * level;
       master.connect(comp).connect(ctx.destination);
-      const body = createBody(); // cassa armonica e riverbero: solo per le note, non per il click
+      // Catene solo per le note, non per il click: cassa armonica (chitarra) o equalizzazione
+      // leggera (piano elettrico), entrambe con il riverbero.
+      chains.guitar = createBody();
+      chains.guitar.connect(master);
+      chains.epiano = createKeys();
+      notesIn = ctx.createGain();
+      notesIn.connect(chains[timbre]);
       noteBus = ctx.createGain();
-      noteBus.connect(body).connect(master);
+      noteBus.connect(notesIn);
       bassBus = ctx.createGain();
-      bassBus.connect(body);
+      bassBus.connect(notesIn);
       studyBus = ctx.createGain();
-      studyBus.connect(body);
+      studyBus.connect(notesIn);
       clickBus = ctx.createGain();
       clickBus.connect(master);
       setVolumes(volumes);
@@ -63,28 +75,16 @@
     return true;
   }
 
-  /**
-   * Cassa armonica: filtri risonanti (aria ~100 Hz, tavola ~215 e ~430 Hz, presenza ~2,6 kHz),
-   * taglio del rombo e degli acuti duri, più un riverbero breve da stanza piccola.
-   * Restituisce il nodo d'ingresso; l'uscita va al master.
-   */
-  function createBody() {
-    const filter = (type, f, Q, gain = 0) => {
+  /** Catena con i filtri in serie e il riverbero; restituisce il nodo d'ingresso. */
+  function filterChain(specs, wetGain) {
+    const chain = specs.map(([type, f, Q, gain = 0]) => {
       const b = ctx.createBiquadFilter();
       b.type = type;
       b.frequency.value = f;
       b.Q.value = Q;
       b.gain.value = gain;
       return b;
-    };
-    const chain = [
-      filter('highpass', 70, 0.7),
-      filter('peaking', 102, 2.2, 5),
-      filter('peaking', 215, 2.5, 3.5),
-      filter('peaking', 430, 2, 2),
-      filter('peaking', 2600, 1.2, 1.5),
-      filter('lowpass', 7500, 0.6),
-    ];
+    });
     for (let i = 0; i < chain.length - 1; i++) chain[i].connect(chain[i + 1]);
     const out = chain[chain.length - 1];
     const dry = ctx.createGain();
@@ -94,11 +94,40 @@
       const verb = ctx.createConvolver();
       verb.buffer = roomImpulse(1.1);
       const wet = ctx.createGain();
-      wet.gain.value = 0.22;
+      wet.gain.value = wetGain;
       out.connect(verb).connect(wet).connect(master);
     } catch (_) { /* senza riverbero se il convolutore non è disponibile */ }
     return chain[0];
   }
+
+  /**
+   * Piano elettrico: niente risonanze di cassa, solo un taglio del rombo, un poco meno di
+   * medio-bassi (il suono resta chiaro negli accordi) e un passa-basso morbido.
+   */
+  function createKeys() {
+    return filterChain([
+      ['highpass', 45, 0.7],
+      ['peaking', 280, 1, -1.5],
+      ['lowpass', 8000, 0.6],
+    ], 0.2);
+  }
+
+  /**
+   * Cassa armonica: filtri risonanti (aria ~100 Hz, tavola ~215 e ~430 Hz, presenza ~2,6 kHz),
+   * taglio del rombo e degli acuti duri, più un riverbero breve da stanza piccola.
+   * Restituisce il nodo d'ingresso; l'uscita va al master.
+   */
+  function createBody() {
+    return filterChain([
+      ['highpass', 70, 0.7],
+      ['peaking', 102, 2.2, 5],
+      ['peaking', 215, 2.5, 3.5],
+      ['peaking', 430, 2, 2],
+      ['peaking', 2600, 1.2, 1.5],
+      ['lowpass', 7500, 0.6],
+    ], 0.22);
+  }
+
 
   /** Risposta all'impulso sintetica di una stanza piccola: rumore stereo che decade e si scurisce. */
   function roomImpulse(seconds) {
@@ -127,17 +156,20 @@
    */
   function voiceFor(midi, velocity = 0.8) {
     const layer = velocity > 0.85 ? 1 : 0;
-    const rk = midi + ':' + layer;
+    const rk = timbre + ':' + midi + ':' + layer;
     const variant = rr.get(rk) === 0 ? 1 : 0;
     rr.set(rk, variant);
     const key = rk + ':' + variant;
     let v = cache.get(key);
     if (!v) {
       const freq = KS.midiToFreq(midi);
-      const { data, rate } = KS.renderPluck(freq, ctx.sampleRate, {
-        brightness: layer ? 0.85 : 0.6,
-        seed: Math.round(freq * 1000) + layer * 7919 + variant * 104729,
-      });
+      const brightness = layer ? 0.85 : 0.6;
+      const { data, rate } = timbre === 'epiano'
+        ? EP.renderNote(freq, ctx.sampleRate, { brightness, variant })
+        : KS.renderPluck(freq, ctx.sampleRate, {
+          brightness,
+          seed: Math.round(freq * 1000) + layer * 7919 + variant * 104729,
+        });
       const buffer = ctx.createBuffer(1, data.length, ctx.sampleRate);
       buffer.getChannelData(0).set(data);
       v = { buffer, rate };
@@ -227,6 +259,19 @@
     if (clickBus) clickBus.gain.value = volumes.click;
   }
 
+  /**
+   * Timbro delle note: 'guitar' (Karplus-Strong, predefinito) o 'epiano' (piano elettrico).
+   * Si può cambiare anche durante la riproduzione: le note successive usano il nuovo timbro.
+   */
+  function setTimbre(t) {
+    if (!TIMBRES.includes(t) || t === timbre) return;
+    timbre = t;
+    if (notesIn) {
+      notesIn.disconnect();
+      notesIn.connect(chains[timbre]);
+    }
+  }
+
   /** Volume generale 0..1 (tutte le parti e il metronomo), con una rampa breve contro i click. */
   function setMaster(v) {
     if (typeof v !== 'number' || !Number.isFinite(v)) return;
@@ -237,5 +282,6 @@
   const now = () => (ctx ? ctx.currentTime : 0);
   const latency = () => (ctx ? (ctx.outputLatency || ctx.baseLatency || 0) : 0);
 
-  root.AudioEngine = { supported, unlock, prepare, playNote, click, stopAll, setVolumes, setMaster, now, latency, get ready() { return !!ctx; } };
+  root.AudioEngine = { supported, unlock, prepare, playNote, click, stopAll, setVolumes, setMaster, setTimbre, now, latency,
+    get timbre() { return timbre; }, get ready() { return !!ctx; } };
 })(globalThis);

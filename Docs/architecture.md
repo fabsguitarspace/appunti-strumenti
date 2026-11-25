@@ -69,13 +69,14 @@ events.js (Events.notesOf: note di un evento, singole o simultanee)  link.js (Li
 | `exercises/fingering.js` | Viterbi con finestra della mano e profili → corda e tasto | sì |
 | `exercises/presets.js` | cataloghi per strumento (`Presets`, `Presets.ARPEGGI`, `makeCatalog`, [esercizi.md](esercizi.md)) e pipeline `build()` | sì |
 | `audio/ks.js` | buffer Karplus-Strong esteso: pizzico, perdita per altezza, allpass frazionario, due polarizzazioni | sì |
+| `audio/ep.js` | buffer del piano elettrico morbido in FM, stessa sintesi del soundfont dei volumi (ADR 0017) | sì |
 | `audio/scheduler.js` | lookahead, loop, count-in, metronomo (anche sul 2 e 4, solo 4, «e» del 2 e del 4: `METRO`, ADR 0016), trainer, coda visiva | sì (clock finto) |
-| `audio/engine.js` | AudioContext, cache delle voci (strati di velocity, varianti alternate), cassa armonica e riverbero, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), volume generale sul master (`setMaster`), smorzamento per parte e corda, click | no |
+| `audio/engine.js` | AudioContext, timbro (`setTimbre`: chitarra o piano elettrico, ADR 0017), cache delle voci (strati di velocity, varianti alternate), cassa armonica o equalizzazione del piano e riverbero, bus e volumi per parte (`comp`, `bass`, `study`; ADR 0013), volume generale sul master (`setMaster`), smorzamento per parte e corda, click | no |
 | `tab/layout.js` | battute, a capo, travature, gironi, anacrusi; note impilate; tab ASCII | sì |
 | `tab/render.js` | SVG della tablatura | no |
 | `fretboard.js` | SVG delle diteggiature e della tastiera intera (`fretFrom/To`, `cellWidth`, `path`) | no |
 | `link.js` | deep link: frammento ↔ parametri, note, identificatori delle scale, esercizio ([deep-link.md](deep-link.md)) | sì |
-| `transport.js` | trasporto comune: barra Play/BPM/Tap/Volume, avvio e arresto, trainer, volumi, volume generale e «muto» (comuni agli strumenti, chiave `appunti-strumenti.volume`), wake lock, ciclo di evidenziazione | no |
+| `transport.js` | trasporto comune: barra Play/BPM/Tap/Volume, avvio e arresto, trainer, volumi, volume generale, «muto» e suono (comuni agli strumenti, chiave `appunti-strumenti.volume`), wake lock, ciclo di evidenziazione | no |
 | `practice.js` | pannello Cosa/Come/Dove/Opzioni comune a Scale e Arpeggi (`configure`), viste, ascolto rapido, «Copia link», stampa | no |
 | `app.js` | guscio comune (`App.start`): estrazione casuale, scheda, diteggiature (facoltative), cronologia, drawer, scorciatoie, lettura del link (parametro della tonica configurabile), contenuto del quiz | no |
 | `scale.js`, `arpeggi.js`, `accordi.js` | definizioni degli strumenti: catalogo, ortografia, dettagli, diteggiature o voicing, chiavi di salvataggio | no |
@@ -143,6 +144,7 @@ salvate; gli strumenti nuovi useranno `gsp:<strumento>:v1`.
 <script src="js/tab/layout.js"></script>
 <script src="js/tab/render.js"></script>
 <script src="js/audio/ks.js"></script>
+<script src="js/audio/ep.js"></script>
 <script src="js/audio/engine.js"></script>
 <script src="js/audio/scheduler.js"></script>
 <script src="js/fretboard.js"></script>

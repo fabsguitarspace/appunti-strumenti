@@ -12,15 +12,19 @@
 
   const BPM_MIN = 30;
   const BPM_MAX = 300;
-  // Volume generale: comune a tutti gli strumenti, ricordato nel browser.
+  // Volume generale e suono (ADR 0017): comuni a tutti gli strumenti, ricordati nel browser.
   const VOLUME_KEY = 'appunti-strumenti.volume';
+  const TIMBRES = [['guitar', 'Chitarra'], ['epiano', 'Piano elettrico']];
   const clampVol = (v) => Math.max(0, Math.min(1, Number.isFinite(v) ? v : 1));
+  const validTimbre = (t) => (TIMBRES.some(([k]) => k === t) ? t : 'guitar');
   function loadVolume() {
     try {
       const raw = JSON.parse(localStorage.getItem(VOLUME_KEY));
-      if (raw && typeof raw === 'object') return { level: clampVol(Number(raw.level)), muted: !!raw.muted };
+      if (raw && typeof raw === 'object') {
+        return { level: clampVol(Number(raw.level)), muted: !!raw.muted, timbre: validTimbre(raw.timbre) };
+      }
     } catch (_) { /* ignora */ }
-    return { level: 1, muted: false };
+    return { level: 1, muted: false, timbre: 'guitar' };
   }
   function saveVolume(v) {
     try { localStorage.setItem(VOLUME_KEY, JSON.stringify(v)); } catch (_) { /* ignora */ }
@@ -106,16 +110,24 @@
     const volOut = h('output', { class: 't-vol-val' });
     const muteBtn = h('button', { type: 'button', class: 't-vol-mute', onclick: () => setVolume({ muted: !vol.muted }) });
     volRange.addEventListener('input', () => setVolume({ level: Number(volRange.value) / 100, muted: false }));
-    const volPop = h('div', { class: 't-vol-pop', id: volId, role: 'group', 'aria-label': 'Volume', hidden: true },
-      h('span', { class: 't-vol-label' }, 'Volume'), volOut, volRange, muteBtn);
+    // Suono delle note: chitarra (Karplus-Strong) o piano elettrico (ADR 0017).
+    const timbreBtns = TIMBRES.map(([key, label]) => h('button', {
+      type: 'button', 'data-timbre': key, onclick: () => setVolume({ timbre: key }),
+    }, label));
+    const volPop = h('div', { class: 't-vol-pop', id: volId, role: 'group', 'aria-label': 'Volume e suono', hidden: true },
+      h('span', { class: 't-vol-label' }, 'Volume'), volOut, volRange, muteBtn,
+      h('span', { class: 't-vol-label t-timbre-label' }, 'Suono'),
+      h('div', { class: 't-timbre', role: 'group', 'aria-label': 'Suono delle note' }, timbreBtns));
     const volWrap = h('div', { class: 't-vol' }, volBtn, volPop);
     const el = h('div', { class: 'transport' }, play, bpmGroup, tapBtn, volWrap);
 
     function setVolume(patch) {
       Object.assign(vol, patch);
       vol.level = clampVol(vol.level);
+      vol.timbre = validTimbre(vol.timbre);
       saveVolume(vol);
       AudioEngine.setMaster(vol.muted ? 0 : vol.level);
+      AudioEngine.setTimbre(vol.timbre);
       renderVolume();
     }
 
@@ -129,6 +141,7 @@
       volBtn.dataset.level = silent ? 'off' : pct < 50 ? 'low' : 'high';
       volBtn.setAttribute('aria-label', 'Volume: ' + (vol.muted ? 'muto' : pct + '%'));
       volBtn.classList.toggle('is-muted', silent);
+      for (const b of timbreBtns) b.setAttribute('aria-pressed', String(b.dataset.timbre === vol.timbre));
     }
 
     function setVolOpen(open) {
@@ -142,6 +155,7 @@
       if (e.key === 'Escape' && !volPop.hidden) { e.stopPropagation(); setVolOpen(false); volBtn.focus(); }
     });
     AudioEngine.setMaster(vol.muted ? 0 : vol.level);
+    AudioEngine.setTimbre(vol.timbre);
     renderVolume();
 
     function render() {

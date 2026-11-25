@@ -150,3 +150,42 @@ test('scheduler: cambio di BPM senza salti e coda visiva', () => {
   assert.ok(Math.abs(notes[3] - notes[2] - 0.5) < 1e-9);
   assert.equal(s.isPlaying(), false);
 });
+
+// Piano elettrico (ADR 0017): stessa sintesi FM del soundfont dei volumi.
+const EP = require('../js/audio/ep.js');
+
+// La sintesi è intonata per costruzione (seni esatti); la tolleranza copre l'errore dello
+// stimatore sulle note gravi, dove l'ampiezza e l'indice FM cambiano dentro la finestra.
+test('Piano elettrico: intonazione entro ±5 cent da MIDI 40 a 88', () => {
+  const sr = 44100;
+  for (const midi of [40, 52, 64, 76, 88]) {
+    const freq = EP.midiToFreq(midi);
+    const { data, rate, f0 } = EP.renderNote(freq, sr);
+    assert.equal(rate, 1);
+    const est = estimateF0(data, sr, Math.round(sr / f0));
+    assert.ok(Math.abs(cents(est, freq)) < 5, `MIDI ${midi}: ${cents(est, freq).toFixed(2)} cent`);
+  }
+});
+
+test('Piano elettrico: picco entro 0,9, decadimento e nessun click finale', () => {
+  for (const midi of [36, 60, 84]) {
+    const { data } = EP.renderNote(EP.midiToFreq(midi), 44100);
+    let peak = 0;
+    for (const v of data) peak = Math.max(peak, Math.abs(v));
+    assert.ok(peak <= 0.9 + 1e-6 && peak > 0.5, `MIDI ${midi}: picco ${peak}`);
+    const rms = (a, b) => Math.sqrt(data.slice(a, b).reduce((s, v) => s + v * v, 0) / (b - a));
+    assert.ok(rms(0, 4410) > 3 * rms(data.length - 8820, data.length - 4410), `MIDI ${midi}: non decade`);
+    assert.ok(Math.abs(data[data.length - 1]) < 1e-3, `MIDI ${midi}: coda non chiusa`);
+  }
+});
+
+test('Piano elettrico: l\'accento è più brillante, il buffer è deterministico', () => {
+  const soft = EP.renderNote(196, 44100, { brightness: 0.6 }).data;
+  const hard = EP.renderNote(196, 44100, { brightness: 0.85 }).data;
+  assert.ok(brightnessOf(hard) > brightnessOf(soft));
+  const a = EP.renderNote(220, 44100).data;
+  const b = EP.renderNote(220, 44100).data;
+  assert.deepEqual(a, b);
+  const c = EP.renderNote(220, 44100, { variant: 1 }).data;
+  assert.notDeepEqual(a, c);
+});

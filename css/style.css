@@ -451,6 +451,13 @@ body.has-transport .transport-slot { display: flex; flex: 1; min-width: 0; }
   background: var(--surface); color: var(--text); font-weight: 600;
 }
 .t-vol-mute[aria-pressed="true"] { background: var(--surface-2); }
+.t-timbre-label { grid-column: 1 / -1; margin-top: 4px; }
+.t-timbre { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.t-timbre button {
+  min-height: 40px; padding: 0 8px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface); color: var(--text); font-weight: 600;
+}
+.t-timbre button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
 
 /* --- Ascolto rapido sulle card delle diteggiature */
 .pattern figcaption { justify-content: space-between; flex-wrap: nowrap; align-items: center; }
